@@ -80,8 +80,12 @@ class BaseScraper(ABC):
         assert self.download_path is not None
 
     def _get_n_pags(self, query_inicial):
+        self.logger.debug(f"Sending r0.")
         r0 = self.session.get(self.api_base, params=query_inicial)
+
+        self.logger.debug(f"Finding n_pags")
         contagem = self._find_n_pags(r0)
+        
         self.logger.debug(f"Found {contagem} pages for query {query_inicial}")
         return contagem
 
