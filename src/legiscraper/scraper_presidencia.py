@@ -20,6 +20,3 @@ class ScraperPresidencia(BaseScraper):
 
     def _parse_page(self, path) -> pl.DataFrame:
         ...
-
-    def _set_query_atual(self, query_real, pag) -> dict[str, Any]:
-        ...
