@@ -12,7 +12,7 @@ import logging
 import glob
 
 class BaseScraper(ABC):
-    def __init__(self, nome_buscador: str, verbose: bool = True):
+    def __init__(self, nome_buscador: str, debug: bool = True):
         self.nome_buscador: str = nome_buscador
         self.session: requests.Session = requests.Session()
         self.api_base: str
@@ -20,7 +20,7 @@ class BaseScraper(ABC):
         self.sleep_time: int = 2
         self.type: str
         self.query_page_name: str
-        self.verbose: bool = verbose
+        self.debug: bool = debug
 
         # Logger setup
         self.logger = logging.getLogger(self.nome_buscador)
@@ -29,7 +29,7 @@ class BaseScraper(ABC):
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
         self.logger.propagate = False
-        self.logger.setLevel(logging.DEBUG if self.verbose else logging.INFO)
+        self.logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
 
     def _set_download_path(self, path: str | None = None):
         if path is None:
@@ -42,12 +42,17 @@ class BaseScraper(ABC):
         path_result = self.download_data(**kwargs)  # , classe, assunto, comarca, id_processo,
         data_parsed = self.parse_data(path_result)
         self.logger.info(f"Scrape finished, cleaning up directory {path_result}")
-        shutil.rmtree(path_result)
+        
+        if self.debug is False:
+            shutil.rmtree(path_result)
+
         return data_parsed
 
     def download_data(self, **kwargs):
         self.logger.debug(f"Setting query")
         query_base = self._set_query_base(**kwargs)
+        self.logger.debug(query_base)
+        
         self.logger.debug(f"Setting n_pags")
         n_pags = self._get_n_pags(query_base)
 
@@ -55,15 +60,18 @@ class BaseScraper(ABC):
         paginas = kwargs.get("paginas")
         paginas = self._set_paginas(paginas, n_pags)
 
-        download_dir = self._create_download_dir()
+        download_dir = self._create_download_dir()      
 
         for pag in tqdm(paginas, desc="Baixando documentos"):
             time.sleep(self.sleep_time)
             self.logger.debug(f"Downloading page {pag}")
 
             query_atual = self._set_query_atual(query_base, pag)
+            self.logger.debug(query_atual)
 
             r = self.session.get(self.api_base, params=query_atual)
+
+            self.logger.debug(r)
 
             file_name = self._set_file_name(download_dir, pag)
 
@@ -85,7 +93,7 @@ class BaseScraper(ABC):
 
         self.logger.debug(f"Finding n_pags")
         contagem = self._find_n_pags(r0)
-        
+
         self.logger.debug(f"Found {contagem} pages for query {query_inicial}")
         return contagem
 
@@ -123,6 +131,8 @@ class BaseScraper(ABC):
         ...
 
     def parse_data(self, path: str) -> pl.DataFrame:
+        self.logger.debug(f"Parsing data")
+        
         if os.path.isfile(path):
             result = [self._parse_page(path)]
         else:
