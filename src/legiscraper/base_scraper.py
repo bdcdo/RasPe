@@ -35,8 +35,8 @@ class BaseScraper(ABC):
         self, 
         **kwargs
     ):
-        query_inicial, query_real = self._set_query(**kwargs)
-        n_pags = self._get_n_pags(query_inicial)
+        query_base = self._set_query_base(**kwargs)
+        n_pags = self._get_n_pags(query_base)
 
         paginas = kwargs.get('paginas')
         self._set_paginas(paginas, n_pags)
@@ -46,7 +46,7 @@ class BaseScraper(ABC):
         for pag in tqdm(paginas, desc="Baixando documentos"):
             time.sleep(self.sleep_time)
 
-            query_atual = self._set_query_atual(query_real, pag)
+            query_atual = self._set_query_atual(query_base, pag)
                       
             r = self.session.get(self.api_base, params=query_atual)
 
@@ -101,7 +101,7 @@ class BaseScraper(ABC):
         return query_atual
     
     @abstractmethod
-    def _set_query(self, **kwargs) -> dict[str, Any]: 
+    def _set_query_base(self, **kwargs) -> dict[str, Any]: 
         ...
 
     @abstractmethod
