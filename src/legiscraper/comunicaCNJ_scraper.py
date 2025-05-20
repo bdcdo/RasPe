@@ -1,6 +1,7 @@
 from .base_scraper import BaseScraper
 import polars as pl
 import json
+from typing import Any
 
 class comunicaCNJ_Scraper(BaseScraper):
     """Raspador para o site de Comunicações Processuais do Conselho Nacional de Justiça."""
@@ -21,15 +22,11 @@ class comunicaCNJ_Scraper(BaseScraper):
         query_inicial = {
                 'itensPorPagina': 5,
                 'texto': pesquisa,
-                'dataDisponibilizacaoInicio': data_inicio
+                'dataDisponibilizacaoInicio': data_inicio,
+                'dataDisponibilizacaoFim': data_fim
             }
-        
-        query_real = query_inicial
-        
-        if data_fim:
-                query_real['dataDisponibilizacaoFim'] = data_fim
 
-        return query_inicial, query_real
+        return query_inicial
         
     def _find_n_pags(self, r0):
         contagem = r0.json()['count']
@@ -47,3 +44,8 @@ class comunicaCNJ_Scraper(BaseScraper):
             lista_infos.append(processo)
 
         return pl.DataFrame(lista_infos)
+    
+    def _set_query_atual(self, query_real, pag) -> dict[str, str]:
+        query_atual = query_real
+        query_atual['pagina'] = pag
+        return query_atual

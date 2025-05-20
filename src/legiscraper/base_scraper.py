@@ -34,7 +34,7 @@ class BaseScraper(ABC):
         self, 
         **kwargs
     ):
-        query_inicial, query_real = self._set_queries(**kwargs)
+        query_inicial, query_real = self._set_query(**kwargs)
         n_pags = self._get_n_pags(query_inicial)
 
         paginas = kwargs.get('paginas')
@@ -44,8 +44,10 @@ class BaseScraper(ABC):
 
         for pag in tqdm(paginas, desc="Baixando documentos"):
             time.sleep(self.sleep_time)
+
+            query_atual = self._set_query_atual(query_real, pag)
                       
-            r = self.session.get(self.api_base, params=query_real)
+            r = self.session.get(self.api_base, params=query_atual)
 
             file_name = self._set_file_name(download_dir, pag)
 
@@ -93,11 +95,15 @@ class BaseScraper(ABC):
         return file_name
     
     @abstractmethod
-    def _set_queries(self, **kwargs) -> tuple[dict[str, Any], dict[str, Any]]: 
+    def _set_query(self, **kwargs) -> dict[str, Any]: 
         ...
 
     @abstractmethod
     def _find_n_pags(self, r0) -> int:
+        ...
+
+    @abstractmethod
+    def _set_query_atual(self, query_real, pag) -> dict[str, Any]:
         ...
 
     def parse_data(self, path: str) -> pl.DataFrame:
@@ -116,8 +122,9 @@ class BaseScraper(ABC):
                     continue
                 if single_result is not None:
                     result.append(single_result)
-        result = pl.concat(result)
-        return result
+        if not result:
+            return pl.DataFrame()
+        return pl.concat(result)
     
     @abstractmethod
     def _parse_page(self, path) -> pl.DataFrame:
