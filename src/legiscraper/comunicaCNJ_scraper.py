@@ -13,7 +13,7 @@ class comunicaCNJ_Scraper(BaseScraper):
         self.query_page_name = 'pagina'
         self._set_download_path(download_path)
     
-    def _set_queries(self, **kwargs):
+    def _set_query(self, **kwargs):
         pesquisa = kwargs.get('pesquisa')
         data_inicio = kwargs.get('data_inicio')
         data_fim = kwargs.get('data_fim')        

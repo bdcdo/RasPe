@@ -10,8 +10,9 @@ class ScraperPresidencia(BaseScraper):
         self.api_base = 'https://comunicaapi.pje.jus.br/api/v1/comunicacao'
         self._set_download_path(download_path)
         self.type = 'json'
+        self.query_page_name = ''
 
-    def _set_queries(self, **kwargs) -> tuple[dict[str, Any], dict[str, Any]]:
+    def _set_query(self, **kwargs) -> dict[str, Any]:
         ...
 
     def _find_n_pags(self, r0) -> int:

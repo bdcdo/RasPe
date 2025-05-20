@@ -18,6 +18,7 @@ class BaseScraper(ABC):
         self.download_path: str | None = None
         self.sleep_time: int = 2
         self.type: str
+        self.query_page_name: str
 
     def _set_download_path(self, path: str | None = None):
         if path is None:
@@ -94,16 +95,17 @@ class BaseScraper(ABC):
 
         return file_name
     
+    def _set_query_atual(self, query_real, pag) -> dict[str, str]:
+        query_atual = query_real
+        query_atual[self.query_page_name] = pag
+        return query_atual
+    
     @abstractmethod
     def _set_query(self, **kwargs) -> dict[str, Any]: 
         ...
 
     @abstractmethod
     def _find_n_pags(self, r0) -> int:
-        ...
-
-    @abstractmethod
-    def _set_query_atual(self, query_real, pag) -> dict[str, Any]:
         ...
 
     def parse_data(self, path: str) -> pl.DataFrame:
