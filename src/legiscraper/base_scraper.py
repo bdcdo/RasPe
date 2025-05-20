@@ -46,9 +46,12 @@ class BaseScraper(ABC):
         return data_parsed
 
     def download_data(self, **kwargs):
+        self.logger.debug(f"Setting query")
         query_base = self._set_query_base(**kwargs)
+        self.logger.debug(f"Setting n_pags")
         n_pags = self._get_n_pags(query_base)
 
+        self.logger.debug(f"Setting paginas")
         paginas = kwargs.get("paginas")
         paginas = self._set_paginas(paginas, n_pags)
 
