@@ -23,9 +23,13 @@ class comunicaCNJ_Scraper(BaseScraper):
         query_inicial = {
                 'itensPorPagina': 5,
                 'texto': pesquisa,
-                'dataDisponibilizacaoInicio': data_inicio,
-                'dataDisponibilizacaoFim': data_fim
             }
+        
+        if data_inicio is not None:
+            query_inicial['dataDisponibilizacaoInicio'] = data_inicio
+
+        if data_fim is not None :
+            query_inicial['dataDisponibilizacaoFim'] = data_fim
 
         return query_inicial
         
