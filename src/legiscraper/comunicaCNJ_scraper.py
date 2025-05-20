@@ -9,8 +9,9 @@ class comunicaCNJ_Scraper(BaseScraper):
     def __init__(self, download_path = None):
         super().__init__("CNJ")
         self.api_base = 'https://comunicaapi.pje.jus.br/api/v1/comunicacao'
-        self._set_download_path(download_path)
         self.type = 'json'
+        self.query_page_name = 'pagina'
+        self._set_download_path(download_path)
     
     def _set_queries(self, **kwargs):
         pesquisa = kwargs.get('pesquisa')
@@ -44,8 +45,3 @@ class comunicaCNJ_Scraper(BaseScraper):
             lista_infos.append(processo)
 
         return pl.DataFrame(lista_infos)
-    
-    def _set_query_atual(self, query_real, pag) -> dict[str, str]:
-        query_atual = query_real
-        query_atual['pagina'] = pag
-        return query_atual
