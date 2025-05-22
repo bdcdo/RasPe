@@ -1,7 +1,9 @@
-from .base_scraper import BaseScraper
-import polars as pl
-import json
 from typing import Any
+import json
+
+import polars as pl
+
+from .base_scraper import BaseScraper
 
 class comunicaCNJ_Scraper(BaseScraper):
     """Raspador para o site de Comunicações Processuais do Conselho Nacional de Justiça."""
