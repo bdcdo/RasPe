@@ -94,7 +94,7 @@ class BaseScraper(ABC):
             else:
                 r = self.session.get(
                     self.api_base, 
-                    data=query_atual, 
+                    params=query_atual, 
                     headers=self.headers, 
                     timeout=self.timeout
                 )
@@ -130,7 +130,7 @@ class BaseScraper(ABC):
             else:
                 r0 = self.session.get(
                     self.api_base, 
-                    data=query_inicial, 
+                    params=query_inicial, 
                     headers=self.headers, 
                     timeout=self.timeout
                 )
