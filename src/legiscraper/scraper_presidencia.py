@@ -65,21 +65,45 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
     def _parse_page(self, path) -> pl.DataFrame:
         from bs4 import BeautifulSoup
         
-        with open(path, 'r', encoding='utf-8') as file:
-            html_content = file.read()
+        columns = ['nome', 'link', 'ficha', 'revogacao', 'descricao']
+        
+        try:
+            with open(path, 'r', encoding='utf-8') as file:
+                html_content = file.read()
 
-        lista_infos = []
+            lista_infos = []
 
-        soup = BeautifulSoup(html_content, 'html.parser')
-        itens = soup.find('div', class_='card-body p-0').find('div').find_all('div')
+            soup = BeautifulSoup(html_content, 'html.parser')
+            card_body = soup.find('div', class_='card-body p-0')
+            
+            if not card_body:
+                return pl.DataFrame(schema=columns)
+                
+            container = card_body.find('div')
+            if not container:
+                return pl.DataFrame(schema=columns)
+                
+            itens = container.find_all('div')
 
-        for item in itens:
-            nome = item.find('a').text.strip()
-            link = item.find_all('a')[0]['href']
-            ficha = item.find_all('a')[1]['href']
-            revogacao = item.find_all('p')[0].text
-            descricao = item.find_all('p')[1].text
+            for item in itens:
+                try:
+                    links = item.find_all('a')
+                    paragraphs = item.find_all('p')
+                    
+                    if len(links) >= 2 and len(paragraphs) >= 2:
+                        nome = links[0].text.strip()
+                        link = links[0]['href']
+                        ficha = links[1]['href']
+                        revogacao = paragraphs[0].text
+                        descricao = paragraphs[1].text
 
-            lista_infos.append([nome, link, ficha, revogacao, descricao])
+                        lista_infos.append([nome, link, ficha, revogacao, descricao])
+                except Exception as e:
+                    self.logger.warning(f"Error parsing item in {path}: {e}")
+                    continue
 
-        return pl.DataFrame(lista_infos)
+            return pl.DataFrame(lista_infos, schema=columns)
+            
+        except Exception as e:
+            self.logger.error(f"Error parsing page {path}: {e}")
+            return pl.DataFrame(schema=columns)

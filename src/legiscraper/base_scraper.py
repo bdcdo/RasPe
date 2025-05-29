@@ -212,6 +212,14 @@ class BaseScraper(ABC):
                     result.append(single_result)
         if not result:
             return pl.DataFrame()
+        
+        # Check if all DataFrames have the same schema before concatenating
+        if len(result) > 1:
+            first_schema = result[0].schema
+            for i, df in enumerate(result[1:], 1):
+                if df.schema != first_schema:
+                    self.logger.warning(f"Schema mismatch: DataFrame {i} has {len(df.columns)} columns {list(df.columns)}, expected {len(first_schema)} columns {list(first_schema.keys())}")
+        
         return pl.concat(result)
 
     @abstractmethod
