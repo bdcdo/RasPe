@@ -42,14 +42,25 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
             h4_tag = r0s.find('h4')
             if h4_tag:
                 num_text = h4_tag.text
+                self.logger.debug(f"Found h4 text: '{num_text}'")
 
         num = 0
-        match = re.search(r'\d+', num_text)
+        # Pattern specifically for "27 resultados encontrados"
+        match = re.search(r'(\d+)\s+resultados?\s+encontrados?', num_text, re.IGNORECASE)
         if match:
-            num = int(match.group(0))
+            num = int(match.group(1))
+        else:
+            # Fallback to first number
+            match = re.search(r'\d+', num_text)
+            if match:
+                num = int(match.group(0))
 
-        self.logger.debug(f"Extracted number of pages: {num}")
-        return num
+        self.logger.debug(f"Extracted number of results: {num}")
+        
+        # Convert results to pages (assuming 10 results per page)
+        pages = (num + 9) // 10  # Round up division
+        self.logger.debug(f"Calculated pages: {pages}")
+        return pages
 
     def _parse_page(self, path) -> pl.DataFrame:
         ...
