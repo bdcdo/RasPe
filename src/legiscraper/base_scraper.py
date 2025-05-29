@@ -23,6 +23,15 @@ class BaseScraper(ABC):
         self.query_page_multiplier: int = 1
         self.query_page_increment: int = 0
         self.debug: bool = debug
+        self.headers: dict = {
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0",
+            "Accept": "*/*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Connection": "keep-alive",
+            "DNT": "1"
+        }
+        self.timeout: tuple = (10, 30)
 
         # Logger setup
         self.logger = logging.getLogger(self.nome_buscador)
@@ -71,7 +80,12 @@ class BaseScraper(ABC):
             query_atual = self._set_query_atual(query_base, pag)
             self.logger.debug(query_atual)
 
-            r = self.session.get(self.api_base, params=query_atual)
+            r = self.session.get(
+                self.api_base, 
+                params=query_atual, 
+                headers=self.headers, 
+                timeout=self.timeout
+            )
 
             self.logger.debug(r)
 
@@ -91,7 +105,12 @@ class BaseScraper(ABC):
 
     def _get_n_pags(self, query_inicial):
         self.logger.debug(f"Sending r0.")
-        r0 = self.session.get(self.api_base, params=query_inicial)
+        r0 = self.session.get(
+            self.api_base, 
+            params=query_inicial, 
+            headers=self.headers, 
+            timeout=self.timeout
+        )
 
         self.logger.debug(f"Finding n_pags")
         contagem = self._find_n_pags(r0)

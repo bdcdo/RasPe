@@ -47,5 +47,3 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
 
     def _parse_page(self, path) -> pl.DataFrame:
         ...
-
-payload = "pagina=2&posicao=20&termo=doen%C3%A7a%2Brara&ordenacao=maior_data"
