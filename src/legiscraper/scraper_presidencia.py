@@ -85,22 +85,25 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
                 
             itens = container.find_all('div')
 
-            for item in itens:
-                try:
-                    links = item.find_all('a')
-                    paragraphs = item.find_all('p')
-                    
-                    if len(links) >= 2 and len(paragraphs) >= 2:
-                        nome = links[0].text.strip()
-                        link = links[0]['href']
-                        ficha = links[1]['href']
-                        revogacao = paragraphs[0].text
-                        descricao = paragraphs[1].text
-
-                        lista_infos.append([nome, link, ficha, revogacao, descricao])
-                except Exception as e:
-                    self.logger.warning(f"Error parsing item in {path}: {e}")
+            for i in range(len(itens)):
+                if i % 2 == 1:
                     continue
+                else:
+                    try:
+                        links = item.find_all('a')
+                        paragraphs = item.find_all('p')
+                        
+                        if len(links) >= 2 and len(paragraphs) >= 2:
+                            nome = links[0].text.strip()
+                            link = links[0]['href']
+                            ficha = links[1]['href']
+                            revogacao = paragraphs[0].text
+                            descricao = paragraphs[1].text
+
+                            lista_infos.append([nome, link, ficha, revogacao, descricao])
+                    except Exception as e:
+                        self.logger.warning(f"Error parsing item in {path}: {e}")
+                        continue
 
             return pl.DataFrame(lista_infos, schema=columns)
             
