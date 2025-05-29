@@ -14,6 +14,7 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
         self.query_page_name = 'posicao'
         self.query_page_multiplier = 10
         self.query_page_increment = -10
+        self.api_method = 'post'
 
     def _set_query_base(self, **kwargs) -> dict[str, Any]:
         pesquisa = kwargs.get('pesquisa')
@@ -21,13 +22,18 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
         self._config()
 
         query_inicial = {
-                'texto': pesquisa,
+                'termo': pesquisa,
                 'ordenacao': 'maior_data',
+                'posicao': '0'
             }
         
         return query_inicial
 
     def _find_n_pags(self, r0) -> int:
+        if r0.status_code >= 500:
+            self.logger.warning(f"Server error {r0.status_code} for URL {r0.url}, returning 0 pages")
+            return 0
+        
         r0.raise_for_status()
 
         r0s = self.soup_it(r0.content)
@@ -37,7 +43,7 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
             if h4_tag:
                 num_text = h4_tag.text
 
-        num = 0 # Default value
+        num = 0
         match = re.search(r'\d+', num_text)
         if match:
             num = int(match.group(0))
