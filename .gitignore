@@ -1,1 +1,5 @@
 .venv
+/dev
+/.claude
+/.pytest_cache
+/__pycache__
