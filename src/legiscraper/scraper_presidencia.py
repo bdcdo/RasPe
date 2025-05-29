@@ -90,6 +90,7 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
                     continue
                 else:
                     try:
+                        item = itens[i]
                         links = item.find_all('a')
                         paragraphs = item.find_all('p')
                         
