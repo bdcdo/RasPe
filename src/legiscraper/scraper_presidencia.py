@@ -10,12 +10,26 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
         super().__init__("PRESIDENCIA")
         self.api_base = "https://legislacao.presidencia.gov.br/pesquisa/ajax/resultado_pesquisa_legislacao.php"
         self._set_download_path(download_path)
+        self._set_headers()
         self.type = 'html'
         self.query_page_name = 'posicao'
         self.query_page_multiplier = 10
         self.query_page_increment = -10
         self.api_method = 'post'
 
+        headers_presidencia = {
+            "Accept": "*/*",
+            "Origin": "https://legislacao.presidencia.gov.br",
+            "Referer": "https://legislacao.presidencia.gov.br/",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "DNT": "1",
+            "Priority": "u=0",
+            "Sec-Fetch-Site": "same-origin",
+            "Sec-GPC": "1",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+        self._set_headers(headers_presidencia)      
+    
     def _set_query_base(self, **kwargs) -> dict[str, Any]:
         pesquisa = kwargs.get('pesquisa')
 

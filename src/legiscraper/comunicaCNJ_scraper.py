@@ -14,6 +14,20 @@ class comunicaCNJ_Scraper(BaseScraper):
         self.type = 'json'
         self.query_page_name = 'pagina'
         self._set_download_path(download_path)
+
+        header_cnj = {
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Accept-Language": "pt-BR,en-US;q=0.7,en;q=0.3",
+            "Connection": "keep-alive",
+            "Origin": "https://comunica.pje.jus.br",
+            "Referer": "https://comunica.pje.jus.br/",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-site",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0"
+        }
+        self._set_headers(header_cnj)
     
     def _set_query_base(self, **kwargs):
         pesquisa = kwargs.get('pesquisa')

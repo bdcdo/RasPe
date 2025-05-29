@@ -24,21 +24,12 @@ class BaseScraper(ABC):
         self.query_page_increment: int = 0
         self.debug: bool = debug
         self.headers: dict = {
-            "Accept": "*/*",
             "Accept-Encoding": "gzip, deflate, br, zstd",
             "Accept-Language": "pt-BR,en-US;q=0.7,en;q=0.3",
             "Connection": "keep-alive",
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "DNT": "1",
-            "Origin": "https://legislacao.presidencia.gov.br",
-            "Priority": "u=0",
-            "Referer": "https://legislacao.presidencia.gov.br/",
             "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors", 
-            "Sec-Fetch-Site": "same-origin",
-            "Sec-GPC": "1",
+            "Sec-Fetch-Mode": "cors",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0",
-            "X-Requested-With": "XMLHttpRequest"
         }
         self.timeout: tuple = (10, 30)
         self.api_method: str = 'get'
@@ -52,6 +43,9 @@ class BaseScraper(ABC):
         self.logger.propagate = False
         self.logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
 
+    def _set_headers(self, headers_scraper):
+        self.headers.update(headers_scraper)
+    
     def _set_download_path(self, path: str | None = None):
         if path is None:
             path = tempfile.mkdtemp()
