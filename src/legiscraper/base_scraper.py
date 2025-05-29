@@ -20,6 +20,8 @@ class BaseScraper(ABC):
         self.sleep_time: int = 2
         self.type: str
         self.query_page_name: str
+        self.query_page_multiplier: int = 1
+        self.query_page_increment: int = 0
         self.debug: bool = debug
 
         # Logger setup
@@ -98,6 +100,10 @@ class BaseScraper(ABC):
         return contagem
 
     def _set_paginas(self, paginas, n_pags):
+        if n_pags is None:
+            self.logger.warning("n_pags is None, setting to 0")
+            n_pags = 0
+            
         if paginas is None:
             paginas = range(1, n_pags + 1)
         else:
@@ -119,7 +125,7 @@ class BaseScraper(ABC):
 
     def _set_query_atual(self, query_real, pag) -> dict[str, str]:
         query_atual = query_real
-        query_atual[self.query_page_name] = pag
+        query_atual[self.query_page_name] = pag * self.query_page_multiplier + self.query_page_increment
         return query_atual
 
     @abstractmethod
@@ -155,3 +161,10 @@ class BaseScraper(ABC):
     @abstractmethod
     def _parse_page(self, path) -> pl.DataFrame:
         ...
+
+class HTMLScraper(ABC):
+    def soup_it(self, r0):
+        from bs4 import BeautifulSoup as bs
+        soup = bs(r0, 'html.parser')
+
+        return soup
