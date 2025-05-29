@@ -10,7 +10,6 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
         super().__init__("PRESIDENCIA")
         self.api_base = "https://legislacao.presidencia.gov.br/pesquisa/ajax/resultado_pesquisa_legislacao.php"
         self._set_download_path(download_path)
-        self._set_headers()
         self.type = 'html'
         self.query_page_name = 'posicao'
         self.query_page_multiplier = 10
