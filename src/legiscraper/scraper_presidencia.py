@@ -63,4 +63,23 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
         return pages
 
     def _parse_page(self, path) -> pl.DataFrame:
-        ...
+        from bs4 import BeautifulSoup
+        
+        with open(path, 'r', encoding='utf-8') as file:
+            html_content = file.read()
+
+        lista_infos = []
+
+        soup = BeautifulSoup(html_content, 'html.parser')
+        itens = soup.find('div', class_='card-body p-0').find('div').find_all('div')
+
+        for item in itens:
+            nome = item.find('a').text.strip()
+            link = item.find_all('a')[0]['href']
+            ficha = item.find_all('a')[1]['href']
+            revogacao = item.find_all('p')[0].text
+            descricao = item.find_all('p')[1].text
+
+            lista_infos.append([nome, link, ficha, revogacao, descricao])
+
+        return pl.DataFrame(lista_infos)
