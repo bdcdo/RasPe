@@ -15,6 +15,7 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
         self.query_page_multiplier = 10
         self.query_page_increment = -10
         self.api_method = 'POST'
+        self.sleep_time: int = 3
 
         self.session.headers.update({
             "Accept": "*/*",
@@ -57,15 +58,18 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
                 self.logger.debug(f"Found h4 text: '{num_text}'")
 
         num = 0
-        # Pattern specifically for "27 resultados encontrados"
-        match = re.search(r'(\d+)\s+resultados?\s+encontrados?', num_text, re.IGNORECASE)
+        # Pattern specifically for "1.006 resultados encontrados" (handling thousands separator)
+        match = re.search(r'([\d.]+)\s+resultados?\s+encontrados?', num_text, re.IGNORECASE)
         if match:
-            num = int(match.group(1))
+            # Remove dots used as thousands separators
+            num_str = match.group(1).replace('.', '')
+            num = int(num_str)
         else:
-            # Fallback to first number
-            match = re.search(r'\d+', num_text)
+            # Fallback to first number (with thousands separator handling)
+            match = re.search(r'[\d.]+', num_text)
             if match:
-                num = int(match.group(0))
+                num_str = match.group(0).replace('.', '')
+                num = int(num_str)
 
         self.logger.debug(f"Extracted number of results: {num}")
         
