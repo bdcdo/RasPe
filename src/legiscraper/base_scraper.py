@@ -392,12 +392,12 @@ class BaseScraper(ABC):
             *[pl.col(col).first().alias(col) for col in self.exclude_cols_from_dedup]
         )
         
-        # Converter a coluna de termos para lista
+        # Converter a coluna de termos para o formato apropriado
         result = agregado.with_columns([
-            pl.when(pl.col("termo_busca_list").list.lengths() > 1)
-              .then(pl.col("termo_busca_list"))
-              .otherwise(pl.col("termo_busca_list").list.get(0))
-              .alias("termo_busca"),
+            pl.when(pl.col("termo_busca_list").list.len() > 1)
+              .then(pl.col("termo_busca_list").list.join(", "))
+              .otherwise(pl.col("termo_busca_list").list.first())
+              .alias("termo_busca")
         ]).drop("termo_busca_list")
         
         self.logger.info(f"Remoção de duplicatas concluída. Linhas reduzidas de {df.height} para {result.height}")
