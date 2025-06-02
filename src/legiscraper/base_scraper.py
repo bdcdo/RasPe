@@ -111,7 +111,7 @@ class BaseScraper(ABC):
         for attempt in range(max_retries):
             self.logger.debug(f"Sending r0 (attempt {attempt + 1}/{max_retries})")
             
-            r0 = self._set_r0(query_inicial)
+            r0 = self._set_r(query_inicial)
             self.logger.debug(r0)
 
 
