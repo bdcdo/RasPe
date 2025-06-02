@@ -3,7 +3,7 @@ import json
 
 import polars as pl
 
-from .base_scraper import BaseScraper
+from ..base_scraper import BaseScraper
 
 class comunicaCNJ_Scraper(BaseScraper):
     """Raspador para o site de Comunicações Processuais do Conselho Nacional de Justiça."""
@@ -14,8 +14,9 @@ class comunicaCNJ_Scraper(BaseScraper):
         self.type = 'json'
         self.query_page_name = 'pagina'
         self._set_download_path(download_path)
+        self.api_method = 'GET'
 
-        header_cnj = {
+        self.session.headers.update({
             "Accept": "application/json, text/plain, */*",
             "Accept-Encoding": "gzip, deflate, br, zstd",
             "Accept-Language": "pt-BR,en-US;q=0.7,en;q=0.3",
@@ -26,8 +27,7 @@ class comunicaCNJ_Scraper(BaseScraper):
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-site",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0"
-        }
-        self._set_headers(header_cnj)
+        })
     
     def _set_query_base(self, **kwargs):
         pesquisa = kwargs.get('pesquisa')

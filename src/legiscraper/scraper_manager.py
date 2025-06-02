@@ -1,5 +1,6 @@
-from .scraper_presidencia import ScraperPresidencia
-from .comunicaCNJ_scraper import comunicaCNJ_Scraper
+from scrapers.presidencia import ScraperPresidencia
+from scrapers.comunicaCNJ import comunicaCNJ_Scraper
+from scrapers.DOU import ScraperDOU
 
 def scraper(nome_buscador: str, **kwargs):
     """Retorna o raspador correspondente ao tribunal solicitado."""
@@ -9,5 +10,7 @@ def scraper(nome_buscador: str, **kwargs):
         return ScraperPresidencia(**kwargs)
     elif nome_buscador == "CNJ":
         return comunicaCNJ_Scraper(**kwargs)
+    elif nome_buscador == "DOU":
+        return ScraperDOU(**kwargs)
     else:
         raise ValueError(f"Buscador '{nome_buscador}' ainda não é suportado.")

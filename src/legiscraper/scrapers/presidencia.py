@@ -1,4 +1,4 @@
-from .base_scraper import BaseScraper, HTMLScraper
+from ..base_scraper import BaseScraper, HTMLScraper
 from typing import Any
 import polars as pl
 import tempfile
@@ -14,9 +14,9 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
         self.query_page_name = 'posicao'
         self.query_page_multiplier = 10
         self.query_page_increment = -10
-        self.api_method = 'post'
+        self.api_method = 'POST'
 
-        headers_presidencia = {
+        self.session.headers.update({
             "Accept": "*/*",
             "Origin": "https://legislacao.presidencia.gov.br",
             "Referer": "https://legislacao.presidencia.gov.br/",
@@ -26,8 +26,7 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
             "Sec-Fetch-Site": "same-origin",
             "Sec-GPC": "1",
             "X-Requested-With": "XMLHttpRequest"
-        }
-        self._set_headers(headers_presidencia)      
+        })      
     
     def _set_query_base(self, **kwargs) -> dict[str, Any]:
         pesquisa = kwargs.get('pesquisa')

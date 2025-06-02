@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from fcntl import F_SEAL_SEAL
 from typing import Any
 from datetime import datetime
 from tqdm import tqdm
@@ -23,16 +24,19 @@ class BaseScraper(ABC):
         self.query_page_multiplier: int = 1
         self.query_page_increment: int = 0
         self.debug: bool = debug
-        self.headers: dict = {
+        self.timeout: tuple = (10, 30)
+        self.api_method: str = 'GET'
+        self.old_page: bool = False
+        self.old_page_name: str = 'current_page'
+
+        self.session.headers.update({
             "Accept-Encoding": "gzip, deflate, br, zstd",
             "Accept-Language": "pt-BR,en-US;q=0.7,en;q=0.3",
             "Connection": "keep-alive",
             "Sec-Fetch-Dest": "empty",
             "Sec-Fetch-Mode": "cors",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0",
-        }
-        self.timeout: tuple = (10, 30)
-        self.api_method: str = 'get'
+        })
 
         # Logger setup
         self.logger = logging.getLogger(self.nome_buscador)
@@ -42,9 +46,6 @@ class BaseScraper(ABC):
         self.logger.addHandler(handler)
         self.logger.propagate = False
         self.logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
-
-    def _set_headers(self, headers_scraper):
-        self.headers.update(headers_scraper)
     
     def _set_download_path(self, path: str | None = None):
         if path is None:
@@ -84,20 +85,10 @@ class BaseScraper(ABC):
             query_atual = self._set_query_atual(query_base, pag)
             self.logger.debug(query_atual)
 
-            if self.api_method == 'post':
-                r = self.session.post(
-                    self.api_base, 
-                    data=query_atual, 
-                    headers=self.headers, 
-                    timeout=self.timeout
-                )
-            else:
-                r = self.session.get(
-                    self.api_base, 
-                    params=query_atual, 
-                    headers=self.headers, 
-                    timeout=self.timeout
-                )
+            r = self._set_r(query_atual)
+
+            if r.status_code < 500:
+                break
 
             self.logger.debug(r)
 
@@ -120,20 +111,9 @@ class BaseScraper(ABC):
         for attempt in range(max_retries):
             self.logger.debug(f"Sending r0 (attempt {attempt + 1}/{max_retries})")
             
-            if self.api_method == 'post':
-                r0 = self.session.post(
-                    self.api_base, 
-                    data=query_inicial, 
-                    headers=self.headers, 
-                    timeout=self.timeout
-                )
-            else:
-                r0 = self.session.get(
-                    self.api_base, 
-                    params=query_inicial, 
-                    headers=self.headers, 
-                    timeout=self.timeout
-                )
+            r0 = self._set_r0(query_inicial)
+            self.logger.debug(r0)
+
 
             if r0.status_code < 500:
                 break
@@ -176,7 +156,27 @@ class BaseScraper(ABC):
     def _set_query_atual(self, query_real, pag) -> dict[str, str]:
         query_atual = query_real
         query_atual[self.query_page_name] = pag * self.query_page_multiplier + self.query_page_increment
+        if self.old_page:
+            query_atual[self.old_page_name] = query_atual[self.query_page_name] - 1
         return query_atual
+
+    def _set_r(self, query_atual):
+        if self.api_method == 'POST':
+            r = self.session.post(
+                self.api_base, 
+                data=query_atual,
+                timeout=self.timeout
+            )
+        elif self.api_method == 'GET':
+            r = self.session.get(
+                self.api_base, 
+                params=query_atual, 
+                timeout=self.timeout
+            )
+        else:
+            raise ValueError(f"Invalid api_method: {self.api_method}")
+        
+        return r
 
     @abstractmethod
     def _set_query_base(self, **kwargs) -> dict[str, Any]:
