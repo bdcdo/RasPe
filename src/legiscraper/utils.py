@@ -20,6 +20,11 @@ def expand(expression: str) -> list[str]:
         >>> expand(expr)
         ['doença rara', 'doença raras', 'doenças rara', 'doenças raras', 'medicamento órfão']
     """
+    # Valida parênteses
+    if '()' in expression:
+        raise ValueError("Parênteses vazios não permitidos")
+    if expression.count('(') != expression.count(')'):
+        raise ValueError("Parênteses desequilibrados na expressão")
     # Normalize the expression: convert to standard symbols
     expr = expression.replace(" E ", " AND ").replace(" OU ", " OR ")
     

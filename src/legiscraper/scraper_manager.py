@@ -2,18 +2,23 @@ from .scrapers.presidencia import ScraperPresidencia
 from .scrapers.comunicaCNJ import comunicaCNJ_Scraper
 from .scrapers.DOU import ScraperDOU
 from .scrapers.Folha import ScraperFolha
+from .base_scraper import BaseScraper
+from typing import Type
 
-def scraper(nome_buscador: str, **kwargs):
+def scraper(nome_buscador: str, **kwargs) -> BaseScraper:
     """Retorna o raspador correspondente ao tribunal solicitado."""
-    nome_buscador = nome_buscador.upper()
     
-    if nome_buscador == "PRESIDENCIA":
-        return ScraperPresidencia(**kwargs)
-    elif nome_buscador == "CNJ":
-        return comunicaCNJ_Scraper(**kwargs)
-    elif nome_buscador == "DOU":
-        return ScraperDOU(**kwargs)
-    elif nome_buscador == "FOLHA":
-        return ScraperFolha(**kwargs)
-    else:
-        raise ValueError(f"Buscador '{nome_buscador}' ainda não é suportado.")
+    nome = nome_buscador.upper()
+    mapping: dict[str, Type[BaseScraper]] = {
+        "PRESIDENCIA": ScraperPresidencia,
+        "CNJ": comunicaCNJ_Scraper,
+        "DOU": ScraperDOU,
+        "FOLHA": ScraperFolha,
+    }
+
+    try:
+        klas = mapping[nome]
+    except KeyError:
+        raise ValueError(f"Buscador '{nome}' ainda não é suportado.")
+        
+    return klas(**kwargs)

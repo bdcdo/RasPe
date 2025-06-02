@@ -35,6 +35,7 @@ import shutil
 import time
 import logging
 import glob
+import json
 
 class BaseScraper(ABC):
     """Classe base para criação de web scrapers.
@@ -99,7 +100,7 @@ class BaseScraper(ABC):
         self.logger.addHandler(handler)
         self.logger.propagate = False
         self.logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
-    
+
     def _set_download_path(self, path: str | None = None) -> None:
         """Defines the directory for downloading scraped files.
         
@@ -109,6 +110,8 @@ class BaseScraper(ABC):
         """
         if path is None:
             path = tempfile.mkdtemp()
+        else:
+            os.makedirs(path, exist_ok=True)
         self.download_path = path
         self.logger.debug(f"Download path set to {self.download_path}")
 
@@ -228,7 +231,9 @@ class BaseScraper(ABC):
                 # Salva conteúdo da página
                 file_name = self._set_file_name(download_dir, pag)
                 with open(file_name, "w", encoding="utf-8") as f:
-                    f.write(r.text)
+                    # Write response content: use text or JSON dump fallback
+                    content = r.text if r.text and r.text.strip() else json.dumps(r.json(), ensure_ascii=False)
+                    f.write(content)
                 self.logger.debug(f"Arquivo salvo: {file_name}")
                 
             except Exception as e:
@@ -271,7 +276,7 @@ class BaseScraper(ABC):
         if n_pags is None:
             self.logger.warning("n_pags é None, definindo como 0")
             n_pags = 0
-            
+        # Se não especificado, pega todas as páginas
         if paginas is None:
             paginas = range(1, n_pags + 1)
         else:
@@ -404,7 +409,19 @@ class BaseScraper(ABC):
         return result
         
     def parse_data(self, path: str) -> pl.DataFrame:
-        self.logger.debug(f"Analizando dados")
+        """Analisa os dados de um arquivo ou diretório e os consolida em um DataFrame.
+
+        Se 'path' for um arquivo, ele será processado diretamente. Se for um diretório,
+        todos os arquivos correspondentes a 'self.type' dentro do diretório (recursivamente)
+        serão processados.
+
+        Args:
+            path: Caminho para o arquivo ou diretório contendo os dados a serem analisados.
+
+        Returns:
+            pl.DataFrame: DataFrame consolidado com todos os dados analisados.
+        """
+        self.logger.debug(f"Analisando dados de: {path}")
         
         if os.path.isfile(path):
             result = [self._parse_page(path)]

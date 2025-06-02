@@ -50,29 +50,30 @@ class comunicaCNJ_Scraper(BaseScraper):
         return query_inicial
         
     def _find_n_pags(self, r0):
-        # Check for HTTP errors (like 404, 500)
+        if r0.status_code >= 500:
+            self.logger.error(f"Erro do servidor {r0.status_code}, tentando novamente em {wait_time}s")
+            time.sleep(wait_time)
+        
         r0.raise_for_status()
         try:
-            # Attempt to parse the JSON response
             data = r0.json()
-            contagem = data['count']
+            contagem = data.get('count', data.get('total'))
+            if contagem is None:
+                raise KeyError
             return (contagem // 5) + 1
         except json.JSONDecodeError:
-            # Log the response text for debugging if JSON parsing fails
             self.logger.error(f"Failed to decode JSON response. Response text: {r0.text}")
-            raise # Re-raise the original JSONDecodeError
+            raise
         except KeyError:
-            # If 'count' key is missing in the JSON
-            self.logger.error(f"JSON response is missing 'count' key")
-            raise ValueError("JSON response is missing the expected 'count' key.")        
+            self.logger.error("JSON response is missing 'count' or 'total' key")
+            raise ValueError("JSON response is missing the expected 'count' or 'total' key.")
     
     def _parse_page(self, path: str):
         with open(path, 'r', encoding='utf-8') as f:
             dados = json.load(f)
         
         lista_infos = []
-
-        infos_processos = dados['items']
+        infos_processos = dados.get('itens', [])
 
         for processo in infos_processos:
             lista_infos.append(processo)
