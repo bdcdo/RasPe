@@ -1,9 +1,9 @@
 """
 Módulo base para funcionalidades de web scraping.
 
-Este módulo fornece a classe base abstrata BaseScraper que serve como fundamento
-para construção de web scrapers. Gerencia tarefas comuns como gerenciamento de
-sessão, paginação, tentativas de requisição e operações de arquivo.
+Este módulo fornece a classe base abstrata BaseScraper, que serve como fundamento
+para construção de web scrapers de buscadores. Gerencia tarefas comuns
+como gerenciamento de sessão, paginação, tentativas de requisição e operações de arquivo.
 
 Exemplo de uso:
     class MeuScraper(BaseScraper):
@@ -24,7 +24,7 @@ Exemplo de uso:
 """
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Literal
 from datetime import datetime
 from tqdm import tqdm
 import polars as pl
@@ -42,8 +42,8 @@ class BaseScraper(ABC):
     
     Fornece funcionalidades comuns para tarefas de web scraping, incluindo
     gerenciamento de sessão, paginação, tentativas de requisição e operações
-    de arquivo. As subclasses devem implementar os métodos abstratos para definir
-    o comportamento específico de scraping.
+    de arquivo. As subclasses devem implementar os métodos abstratos para
+    definir o comportamento específico de scraping.
     
     Args:
         nome_buscador: Identificador único para a instância do scraper.
@@ -61,7 +61,6 @@ class BaseScraper(ABC):
         debug: Flag para modo de depuração.
         timeout: Tupla (connect_timeout, read_timeout) para requisições.
         api_method: Método HTTP a ser usado nas requisições ('GET' ou 'POST').
-        old_page: Se deve incluir o número da página anterior nas requisições.
         old_page_name: Nome do parâmetro para a página anterior.
     """
     
@@ -69,20 +68,13 @@ class BaseScraper(ABC):
         """Inicializa o BaseScraper com configuração comum."""
         self.nome_buscador: str = nome_buscador
         self.session: requests.Session = requests.Session()
-        self.api_base: str = ""  # Deve ser definido pela subclasse
-        self.download_path: str | None = None
         self.sleep_time: int = 2
-        self.type: str = ""  # Deve ser definido pela subclasse
-        self.query_page_name: str = "page"  # Nome padrão do parâmetro de página
         self.query_page_multiplier: int = 1
         self.query_page_increment: int = 0
         self.debug: bool = debug
         self.timeout: tuple[int, int] = (10, 30)
-        self.api_method: str = 'GET'
-        self.old_page: bool = False
-        self.old_page_name: str = 'currentPage'
-        self.exclude_cols_from_dedup: list[str] = []  # Colunas a excluir na remoção de duplicatas
-
+        self.old_page_name: str | None = None
+        self.exclude_cols_from_dedup: list[str] = []
         self.session.headers.update({
             "Accept-Encoding": "gzip, deflate, br, zstd",
             "Accept-Language": "pt-BR,en-US;q=0.7,en;q=0.3",
@@ -91,7 +83,36 @@ class BaseScraper(ABC):
             "Sec-Fetch-Mode": "cors",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0",
         })
+        self.max_retries: int = 3
 
+        self._api_base: str # Deve ser definido pela subclasse
+        self._type: Literal['JSON', 'HTML'] # Deve ser definido pela subclasse
+        self._query_page_name: str # Deve ser definido pela subclasse
+        self._api_method: Literal['GET', 'POST']
+
+        self._start_logger()
+
+    @property
+    @abstractmethod
+    def api_base(self) -> str:
+        ...
+
+    @property
+    @abstractmethod
+    def type(self) -> Literal['JSON', 'HTML']:
+        ...
+
+    @property
+    @abstractmethod
+    def query_page_name(self) -> str:
+        ...
+
+    @property
+    @abstractmethod
+    def api_method(self) -> Literal['GET', 'POST']:
+        ...
+
+    def _start_logger(self):
         # Configuração do logger
         self.logger = logging.getLogger(self.nome_buscador)
         handler = logging.StreamHandler()
@@ -101,20 +122,6 @@ class BaseScraper(ABC):
         self.logger.propagate = False
         self.logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
 
-    def _set_download_path(self, path: str | None = None) -> None:
-        """Defines the directory for downloading scraped files.
-        
-        Args:
-            path: Path to the directory to store the files. If None,
-                a temporary directory will be created.
-        """
-        if path is None:
-            path = tempfile.mkdtemp()
-        else:
-            os.makedirs(path, exist_ok=True)
-        self.download_path = path
-        self.logger.debug(f"Download path set to {self.download_path}")
-
     def scrape(self, **kwargs) -> pl.DataFrame:
         """Método principal para executar o processo de scraping.
         
@@ -123,8 +130,6 @@ class BaseScraper(ABC):
                 uma lista/tupla, o scraper processará cada valor na sequência.
                 O parâmetro especial 'paginas' pode ser um objeto range para
                 especificar as páginas.
-                O parâmetro especial 'rastrear_termo_busca' (bool) controla se
-                uma coluna com o termo de busca será adicionada (padrão: True).
     
         Returns:
             pl.DataFrame: DataFrame combinado com todos os dados raspados.
@@ -132,9 +137,8 @@ class BaseScraper(ABC):
         Raises:
             ValueError: Se múltiplos parâmetros forem fornecidos como listas/tuplas.
         """
-        # Extrai e remove parâmetros especiais
-        rastrear_termo_busca = kwargs.pop('rastrear_termo_busca', True)
         
+        # TODO: Revisar a lógica
         self.logger.info(f"Iniciando scrape com parâmetros {kwargs}")
         # Suporte a lista de valores de busca
         list_keys = [k for k, v in kwargs.items() if isinstance(v, (list, tuple)) and k != "paginas"]
@@ -147,50 +151,43 @@ class BaseScraper(ABC):
             for val in kwargs[key]:
                 self.logger.info(f"Iniciando scrape para {key}={val}")
                 loop_kwargs = {**static_kwargs, key: val}
-                path_result = self.download_data(**loop_kwargs)
-                df = self.parse_data(path_result)
+                path_result = self._download_data(**loop_kwargs)
+                df = self._parse_data(path_result)
                 
-                # Adiciona a coluna com o termo de busca se solicitado
-                if rastrear_termo_busca and not df.is_empty():
-                    termo_busca_val = str(val)
-                    df = df.with_columns(pl.lit(termo_busca_val).alias("termo_busca"))
-                    self.logger.debug(f"Adicionada coluna termo_busca={termo_busca_val} aos resultados")
+                termo_busca_val = str(val)
+                df = df.with_columns(pl.lit(termo_busca_val).alias("termo_busca"))
+                self.logger.debug(f"Adicionada coluna termo_busca={termo_busca_val} aos resultados")
                 
                 dfs.append(df)
                 if self.debug is False:
                     shutil.rmtree(path_result)
             result = pl.concat(dfs) if dfs else pl.DataFrame()
             
-            # Remover duplicatas e agrupar termos de busca se há dados
-            if not result.is_empty() and rastrear_termo_busca:
-                result = self._remove_duplicates(result)
+            result = self._remove_duplicates(result)
                 
             return result
         # Fallback para busca única
         else:
-            path_result = self.download_data(**kwargs)
-            result = self.parse_data(path_result)
+            path_result = self._download_data(**kwargs)
+            result = self._parse_data(path_result)
             
-            # Adiciona o termo de busca para busca única, se solicitado
-            if rastrear_termo_busca and not result.is_empty():
-                # Determina qual parâmetro contém o termo de busca
-                termo_param = next((k for k in kwargs if k in ['pesquisa', 'termo', 'q', 'query']), None)
-                if termo_param:
-                    termo_busca = str(kwargs[termo_param])
-                    result = result.with_columns(pl.lit(termo_busca).alias("termo_busca"))
-                    self.logger.debug(f"Adicionada coluna termo_busca={termo_busca} aos resultados")
+
+            # Determina qual parâmetro contém o termo de busca
+            termo_param = next((k for k in kwargs if k in ['pesquisa', 'termo', 'q', 'query']), None)
+            if termo_param:
+                termo_busca = str(kwargs[termo_param])
+                result = result.with_columns(pl.lit(termo_busca).alias("termo_busca"))
+                self.logger.debug(f"Adicionada coluna termo_busca={termo_busca} aos resultados")
             
             self.logger.info(f"Scrape finalizado, limpando diretório {path_result}")
             if self.debug is False:
                 shutil.rmtree(path_result)
             
-            # Remover duplicatas apenas se houver dados
-            if not result.is_empty() and rastrear_termo_busca:
-                result = self._remove_duplicates(result)
+            result = self._remove_duplicates(result)
             
             return result
 
-    def download_data(self, **kwargs):
+    def _download_data(self, **kwargs):
         self.logger.debug(f"Definindo consulta")
         query_base = self._set_query_base(**kwargs)
         self.logger.debug(query_base)
@@ -242,26 +239,35 @@ class BaseScraper(ABC):
 
         return download_dir
 
-    def _config(self):
-        if not self.api_base:
-            raise ValueError("api_base não definido")
-        if not self.download_path:
-            self._set_download_path()
-        assert self.download_path is not None
-
     def _get_n_pags(self, query_inicial):
-        max_retries = 3
-        for attempt in range(max_retries):
-            self.logger.debug(f"Enviando r0 (tentativa {attempt + 1}/{max_retries})")
+        """
+        Tenta obter o número total de páginas para uma consulta.
+
+        Faz uma requisição para a URL com a query_inicial e extrai o número
+        total de páginas do conteúdo da resposta. Se ocorrer um erro de servidor
+        (status code 500 ou maior), registra e tenta novamente em 2, 4, 8, ...
+        segundos até atingir o limite de tentativas.
+
+        Args:
+            query_inicial: Dicionário com a query a ser enviada para a API.
+
+        Returns:
+            int: Número total de páginas encontradas para a consulta.
+        """
+        # Inicializa a variável de retorno com None para que possa ser detectado
+        # um erro de servidor e não um erro de extração de conteúdo
+        contagem = None
+        
+        for attempt in range(self.max_retries):
+            self.logger.debug(f"Enviando r0 (tentativa {attempt + 1}/{self.max_retries})")
             
             r0 = self._set_r(query_inicial)
             self.logger.debug(r0)
 
-
             if r0.status_code < 500:
                 break
             
-            if attempt < max_retries - 1:
+            if attempt < self.max_retries - 1:
                 wait_time = 2 ** attempt
                 self.logger.warning(f"Erro do servidor {r0.status_code}, tentando novamente em {wait_time}s")
                 time.sleep(wait_time)
@@ -269,13 +275,18 @@ class BaseScraper(ABC):
         self.logger.debug(f"Encontrando n_pags")
         contagem = self._find_n_pags(r0)
 
+        if contagem is None:
+            self.logger.error(f"Erro ao extrair n_pags: {r0.text}")
+        
         self.logger.debug(f"Encontradas {contagem} páginas para consulta {query_inicial}")
         return contagem
 
     def _set_paginas(self, paginas, n_pags):
+        # TODO: repensar essa escolha
         if n_pags is None:
             self.logger.warning("n_pags é None, definindo como 0")
             n_pags = 0
+        
         # Se não especificado, pega todas as páginas
         if paginas is None:
             paginas = range(1, n_pags + 1)
@@ -287,20 +298,26 @@ class BaseScraper(ABC):
     def _create_download_dir(self):
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         path = f"{self.download_path}/{self.nome_buscador}/{timestamp}"
+        
         if not os.path.isdir(path):
             os.makedirs(path)
             self.logger.debug(f"Criado diretório de download em {path}")
+        
         return path
 
     def _set_file_name(self, download_dir, pag):
-        file_name = f"{download_dir}/{self.nome_buscador}_{pag:05d}.{self.type}"
+        file_name = f"{download_dir}/{self.nome_buscador}_{pag:05d}.{self.type.lower()}"
+        
         return file_name
 
     def _set_query_atual(self, query_real, pag) -> dict[str, str]:
         query_atual = query_real
+        
         query_atual[self.query_page_name] = pag * self.query_page_multiplier + self.query_page_increment
-        if self.old_page:
+        
+        if self.old_page_name is not None:
             query_atual[self.old_page_name] = query_atual[self.query_page_name] - 1
+        
         return query_atual
 
     def _set_r(self, query_atual):
@@ -351,64 +368,8 @@ class BaseScraper(ABC):
             int: Número total de páginas a serem raspadas.
         """
         ...
-
-    def _remove_duplicates(self, df: pl.DataFrame) -> pl.DataFrame:
-        """Remove duplicatas do DataFrame e agrupa os termos de busca.
         
-        Este método remove linhas duplicadas no DataFrame, excluindo as colunas
-        especificadas em exclude_cols e a coluna 'termo_busca'. Para registros
-        que são duplicados, os valores da coluna 'termo_busca' são agrupados em uma lista.
-        
-        Args:
-            df: DataFrame a ser processado.
-            exclude_cols: Lista adicional de colunas para excluir ao detectar duplicatas.
-            
-        Returns:
-            pl.DataFrame: DataFrame sem duplicatas e com termos de busca agrupados.
-        """
-        self.logger.debug(f"Removendo duplicatas. Colunas excluídas: {self.exclude_cols_from_dedup}")
-        
-        # Verificar se há coluna termo_busca
-        if "termo_busca" not in df.columns:
-            self.logger.debug("Coluna termo_busca não encontrada, retornando DataFrame original")
-            return df
-        
-        # Preparar lista de colunas para deduplicação
-        all_exclude_cols = ["termo_busca", *self.exclude_cols_from_dedup]
-        dedup_cols = [col for col in df.columns if col not in all_exclude_cols]
-        
-        if not dedup_cols:
-            self.logger.debug("Nenhuma coluna disponível para deduplicação")
-            return df
-        
-        # Verificar se há duplicatas
-        dedup_counts = df.group_by(dedup_cols).count()
-        n_duplicates = dedup_counts.filter(pl.col("count") > 1).height
-        
-        if n_duplicates == 0:
-            self.logger.debug("Nenhuma duplicata encontrada")
-            return df
-        
-        self.logger.info(f"Encontradas {n_duplicates} entradas duplicadas")
-        
-        # Agrupar termos de busca para duplicatas
-        agregado = df.group_by(dedup_cols).agg(
-            pl.col("termo_busca").alias("termo_busca_list"),
-            *[pl.col(col).first().alias(col) for col in self.exclude_cols_from_dedup]
-        )
-        
-        # Converter a coluna de termos para o formato apropriado
-        result = agregado.with_columns([
-            pl.when(pl.col("termo_busca_list").list.len() > 1)
-              .then(pl.col("termo_busca_list").list.join(", "))
-              .otherwise(pl.col("termo_busca_list").list.first())
-              .alias("termo_busca")
-        ]).drop("termo_busca_list")
-        
-        self.logger.info(f"Remoção de duplicatas concluída. Linhas reduzidas de {df.height} para {result.height}")
-        return result
-        
-    def parse_data(self, path: str) -> pl.DataFrame:
+    def _parse_data(self, path: str) -> pl.DataFrame:
         """Analisa os dados de um arquivo ou diretório e os consolida em um DataFrame.
 
         Se 'path' for um arquivo, ele será processado diretamente. Se for um diretório,
@@ -441,13 +402,6 @@ class BaseScraper(ABC):
         if not result:
             return pl.DataFrame()
         
-        # Verifica se todos os DataFrames têm o mesmo esquema antes de concatenar
-        if len(result) > 1:
-            first_schema = result[0].schema
-            for i, df in enumerate(result[1:], 1):
-                if df.schema != first_schema:
-                    self.logger.warning(f"Diferença de esquema: DataFrame {i} tem {len(df.columns)} colunas {list(df.columns)}, esperado {len(first_schema)} colunas {list(first_schema.keys())}")
-        
         return pl.concat(result)
 
     @abstractmethod
@@ -464,21 +418,3 @@ class BaseScraper(ABC):
             pl.DataFrame: Dados analisados como um DataFrame.
         """
         ...
-
-class HTMLScraper:
-    """Classe mixin para scrapers que precisam analisar conteúdo HTML."""
-    
-    def soup_it(self, content: str | bytes) -> 'BeautifulSoup':
-        """Analisa conteúdo HTML usando BeautifulSoup.
-        
-        Args:
-            content: Conteúdo HTML para análise, como string ou bytes.
-            
-        Returns:
-            BeautifulSoup: Documento HTML analisado.
-            
-        Note:
-            Requer o pacote 'beautifulsoup4' instalado.
-        """
-        from bs4 import BeautifulSoup
-        return BeautifulSoup(content, 'html.parser')

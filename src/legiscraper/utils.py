@@ -87,3 +87,59 @@ def expand(expression: str) -> list[str]:
     
     # Remove duplicates and sort
     return sorted(list(set(result)))
+
+def remove_duplicates(df: pl.DataFrame, exclude_cols: list[str]) -> pl.DataFrame:
+    """Remove duplicatas do DataFrame e agrupa os termos de busca.
+    
+    Este método remove linhas duplicadas no DataFrame, excluindo as colunas
+    especificadas em exclude_cols e a coluna 'termo_busca'. Para registros
+    que são duplicados, os valores da coluna 'termo_busca' são agrupados em uma lista.
+    
+    Args:
+        df: DataFrame a ser processado.
+        exclude_cols: Lista adicional de colunas para excluir ao detectar duplicatas.
+        
+    Returns:
+        pl.DataFrame: DataFrame sem duplicatas e com termos de busca agrupados.
+    """
+    self.logger.debug(f"Removendo duplicatas. Colunas excluídas: {self.exclude_cols_from_dedup}")
+    
+    # Verificar se há coluna termo_busca
+    if "termo_busca" not in df.columns:
+        self.logger.debug("Coluna termo_busca não encontrada, retornando DataFrame original")
+        return df
+    
+    # Preparar lista de colunas para deduplicação
+    all_exclude_cols = ["termo_busca", *self.exclude_cols_from_dedup]
+    dedup_cols = [col for col in df.columns if col not in all_exclude_cols]
+    
+    if not dedup_cols:
+        self.logger.debug("Nenhuma coluna disponível para deduplicação")
+        return df
+    
+    # Verificar se há duplicatas
+    dedup_counts = df.group_by(dedup_cols).count()
+    n_duplicates = dedup_counts.filter(pl.col("count") > 1).height
+    
+    if n_duplicates == 0:
+        self.logger.debug("Nenhuma duplicata encontrada")
+        return df
+    
+    self.logger.info(f"Encontradas {n_duplicates} entradas duplicadas")
+    
+    # Agrupar termos de busca para duplicatas
+    agregado = df.group_by(dedup_cols).agg(
+        pl.col("termo_busca").alias("termo_busca_list"),
+        *[pl.col(col).first().alias(col) for col in self.exclude_cols_from_dedup]
+    )
+    
+    # Converter a coluna de termos para o formato apropriado
+    result = agregado.with_columns([
+        pl.when(pl.col("termo_busca_list").list.len() > 1)
+            .then(pl.col("termo_busca_list").list.join(", "))
+            .otherwise(pl.col("termo_busca_list").list.first())
+            .alias("termo_busca")
+    ]).drop("termo_busca_list")
+    
+    self.logger.info(f"Remoção de duplicatas concluída. Linhas reduzidas de {df.height} para {result.height}")
+    return result

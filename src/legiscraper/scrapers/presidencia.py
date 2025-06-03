@@ -8,15 +8,8 @@ import re
 class ScraperPresidencia(BaseScraper, HTMLScraper):
     def __init__(self, download_path = None): # sleep_time = 0.5 causa aviso de "Too Many Requests"
         super().__init__("PRESIDENCIA")
-        self.api_base = "https://legislacao.presidencia.gov.br/pesquisa/ajax/resultado_pesquisa_legislacao.php"
-        self._set_download_path(download_path)
-        self.type = 'html'
-        self.query_page_name = 'posicao'
         self.query_page_multiplier = 10
         self.query_page_increment = -10
-        self.api_method = 'POST'
-        self.sleep_time: int = 3
-
         self.session.headers.update({
             "Accept": "*/*",
             "Origin": "https://legislacao.presidencia.gov.br",
@@ -27,7 +20,28 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
             "Sec-Fetch-Site": "same-origin",
             "Sec-GPC": "1",
             "X-Requested-With": "XMLHttpRequest"
-        })      
+        })
+
+        self._api_base = "https://legislacao.presidencia.gov.br/pesquisa/ajax/resultado_pesquisa_legislacao.php"
+        self._type = 'HTML'
+        self._query_page_name = 'posicao'
+        self._api_method = 'POST'
+
+    @property
+    def api_base(self) -> str:
+        return self._api_base
+
+    @property
+    def type(self) -> Literal['JSON']:
+        return self._type
+
+    @property
+    def query_page_name(self) -> str:
+        return self._query_page_name
+
+    @property
+    def api_method(self) -> Literal['POST']:
+        return self._api_method
     
     def _set_query_base(self, **kwargs) -> dict[str, Any]:
         pesquisa = kwargs.get('pesquisa')
