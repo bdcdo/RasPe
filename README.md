@@ -60,3 +60,4 @@ print(dados)
 **Contato e Colaboração**
 
 Tem interesse em colaborar ou saber mais sobre o BuScraper? Entre em contato conosco ou contribua diretamente através do nosso repositório no GitHub.
+# buScraper
