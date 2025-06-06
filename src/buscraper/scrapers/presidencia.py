@@ -1,5 +1,6 @@
-from ..base_scraper import BaseScraper, HTMLScraper
-from typing import Any
+from ..base_scraper import BaseScraper
+from ..html_scraper import HTMLScraper
+from typing import Any, Literal
 import polars as pl
 import tempfile
 import requests

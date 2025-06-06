@@ -21,6 +21,7 @@ dependencies = [
     "requests>=2.28.0",
     "tenacity>=8.2.3",
     "beautifulsoup4>=4.12.2",
+    "tqdm>=4.66.1",
 ]
 
 [project.urls]

@@ -1,7 +1,5 @@
 from .scrapers.presidencia import ScraperPresidencia
 from .scrapers.comunicaCNJ import comunicaCNJ_Scraper
-from .scrapers.DOU import ScraperDOU
-from .scrapers.Folha import ScraperFolha
 from .base_scraper import BaseScraper
 from typing import Type
 
@@ -12,8 +10,6 @@ def scraper(nome_buscador: str, **kwargs) -> BaseScraper:
     mapping: dict[str, Type[BaseScraper]] = {
         "PRESIDENCIA": ScraperPresidencia,
         "CNJ": comunicaCNJ_Scraper,
-        "DOU": ScraperDOU,
-        "FOLHA": ScraperFolha,
     }
 
     try:

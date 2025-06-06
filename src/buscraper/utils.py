@@ -1,4 +1,5 @@
 import re
+import polars as pl
 
 def expand(expression: str) -> list[str]:
     """
