@@ -47,8 +47,6 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
     def _set_query_base(self, **kwargs) -> dict[str, Any]:
         pesquisa = kwargs.get('pesquisa')
 
-        self._config()
-
         query_inicial = {
                 'termo': pesquisa,
                 'ordenacao': 'maior_data',

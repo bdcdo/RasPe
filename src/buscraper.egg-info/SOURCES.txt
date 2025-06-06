@@ -14,3 +14,4 @@ src/buscraper/scrapers/__init__.py
 src/buscraper/scrapers/comunicaCNJ.py
 src/buscraper/scrapers/presidencia.py
 src/buscraper/scrapers/scraper_template.py
+tests/test_utils.py

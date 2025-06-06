@@ -35,6 +35,10 @@ import time
 import logging
 import glob
 import json
+import tempfile
+
+# Import utility functions
+from .utils import remove_duplicates, create_download_dir
 
 
 class BaseScraper(ABC):
@@ -67,6 +71,7 @@ class BaseScraper(ABC):
     def __init__(self, nome_buscador: str, debug: bool = True):
         """Inicializa o BaseScraper com configuração comum."""
         self.nome_buscador: str = nome_buscador
+        self.download_path: str = tempfile.mkdtemp()
         self.session: requests.Session = requests.Session()
         self.sleep_time: int = 2
         self.query_page_multiplier: int = 1
@@ -402,3 +407,35 @@ class BaseScraper(ABC):
             pl.DataFrame: Dados analisados como um DataFrame.
         """
         ...
+
+    def _remove_duplicates(self, df: pl.DataFrame) -> pl.DataFrame:
+        """Remove duplicatas do DataFrame e agrupa os termos de busca.
+        
+        Este método utiliza a função utilitária remove_duplicates() para eliminar
+        linhas duplicadas, considerando as colunas definidas em exclude_cols_from_dedup.
+        
+        Args:
+            df: DataFrame a ser processado.
+            
+        Returns:
+            pl.DataFrame: DataFrame sem duplicatas e com termos de busca agrupados.
+        """
+        self.logger.debug(f"Removendo duplicatas usando exclude_cols: {self.exclude_cols_from_dedup}")
+        
+        # Chama a função utilitária standalone
+        return remove_duplicates(df, self.exclude_cols_from_dedup)
+    
+    def _create_download_dir(self) -> str:
+        """Cria um diretório para armazenar os arquivos baixados.
+        
+        Gera um caminho único usando um timestamp para garantir que cada
+        sessão de scraping tenha seu próprio diretório.
+        
+        Returns:
+            str: Caminho do diretório criado.
+        """
+        # Chama a função utilitária standalone
+        path = create_download_dir(self.download_path, self.nome_buscador)
+        self.logger.debug(f"Criado diretório de download em {path}")
+        
+        return path

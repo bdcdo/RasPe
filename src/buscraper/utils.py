@@ -1,4 +1,6 @@
 import re
+import os
+from datetime import datetime
 import polars as pl
 
 def expand(expression: str) -> list[str]:
@@ -8,10 +10,11 @@ def expand(expression: str) -> list[str]:
     to the original expression.
     
     Handles nested parentheses, AND (E) and OR (OU) operators.
+    Supports multi-line expressions and flexible spacing.
     
     Args:
         expression: A search expression string with operators "E" (AND) and "OU" (OR)
-                   and parentheses for grouping.
+                   and parentheses for grouping. Can include newlines and extra spaces.
     
     Returns:
         List of strings representing all possible term combinations
@@ -20,12 +23,23 @@ def expand(expression: str) -> list[str]:
         >>> expr = "(((doença OU doenças) E (rara OU raras)) OU ((medicamento) E (órfão)))"
         >>> expand(expr)
         ['doença rara', 'doença raras', 'doenças rara', 'doenças raras', 'medicamento órfão']
+        
+        Multi-line example:
+        >>> expr_multiline = '''
+        ... (((doença OU síndrome) E (rara OU ultrarrara)) OU (medicamento E órfão))
+        ... '''
+        >>> expand(expr_multiline)
+        ['doença rara', 'doença ultrarrara', 'medicamento órfão', 'síndrome rara', 'síndrome ultrarrara']
     """
+    # Normaliza a expressão: remove quebras de linha e normaliza espaços
+    expression = re.sub(r'\s+', ' ', expression)
+    
     # Valida parênteses
     if '()' in expression:
         raise ValueError("Parênteses vazios não permitidos")
     if expression.count('(') != expression.count(')'):
         raise ValueError("Parênteses desequilibrados na expressão")
+    
     # Normalize the expression: convert to standard symbols
     expr = expression.replace(" E ", " AND ").replace(" OU ", " OR ")
     
@@ -102,36 +116,29 @@ def remove_duplicates(df: pl.DataFrame, exclude_cols: list[str]) -> pl.DataFrame
         
     Returns:
         pl.DataFrame: DataFrame sem duplicatas e com termos de busca agrupados.
-    """
-    self.logger.debug(f"Removendo duplicatas. Colunas excluídas: {self.exclude_cols_from_dedup}")
-    
+    """    
     # Verificar se há coluna termo_busca
     if "termo_busca" not in df.columns:
-        self.logger.debug("Coluna termo_busca não encontrada, retornando DataFrame original")
         return df
     
     # Preparar lista de colunas para deduplicação
-    all_exclude_cols = ["termo_busca", *self.exclude_cols_from_dedup]
+    all_exclude_cols = ["termo_busca", *exclude_cols]
     dedup_cols = [col for col in df.columns if col not in all_exclude_cols]
     
     if not dedup_cols:
-        self.logger.debug("Nenhuma coluna disponível para deduplicação")
         return df
     
     # Verificar se há duplicatas
-    dedup_counts = df.group_by(dedup_cols).count()
-    n_duplicates = dedup_counts.filter(pl.col("count") > 1).height
+    dedup_counts = df.group_by(dedup_cols).len()
+    n_duplicates = dedup_counts.filter(pl.col("len") > 1).height
     
     if n_duplicates == 0:
-        self.logger.debug("Nenhuma duplicata encontrada")
         return df
-    
-    self.logger.info(f"Encontradas {n_duplicates} entradas duplicadas")
     
     # Agrupar termos de busca para duplicatas
     agregado = df.group_by(dedup_cols).agg(
         pl.col("termo_busca").alias("termo_busca_list"),
-        *[pl.col(col).first().alias(col) for col in self.exclude_cols_from_dedup]
+        *[pl.col(col).first().alias(col) for col in exclude_cols]
     )
     
     # Converter a coluna de termos para o formato apropriado
@@ -142,14 +149,11 @@ def remove_duplicates(df: pl.DataFrame, exclude_cols: list[str]) -> pl.DataFrame
             .alias("termo_busca")
     ]).drop("termo_busca_list")
     
-    self.logger.info(f"Remoção de duplicatas concluída. Linhas reduzidas de {df.height} para {result.height}")
     return result
 
-def _create_download_dir(self) -> str:
+def create_download_dir(download_path, nome_buscador) -> str:
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    path = f"{self.download_path}/{self.nome_buscador}/{timestamp}"
+    path = f"{download_path}/{nome_buscador}/{timestamp}"
     os.makedirs(path)
-    
-    self.logger.debug(f"Criado diretório de download em {path}")
-    
+        
     return path
