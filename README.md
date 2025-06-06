@@ -1,12 +1,12 @@
-# LegiScraper 🔍📜
+# BuScraper - Se tem buscador, nós raspamos 🔍📜
 
 ## Simplificando a Coleta de Dados Jurídicos para Pesquisa Empírica
 
 ### Sobre o Projeto
 
-O **LegiScraper** é uma biblioteca em Python desenvolvida para revolucionar a forma como pesquisadores coletam dados jurídicos e legislativos no Brasil. Esta ferramenta foi criada para democratizar o acesso à informação jurídica, permitindo que qualquer pessoa, mesmo sem conhecimentos avançados em programação, possa obter dados estruturados de diversas fontes oficiais.
+O **BuScraper** é uma biblioteca em Python desenvolvida para revolucionar a forma como pesquisadores coletam dados jurídicos e legislativos no Brasil. Esta ferramenta foi criada para democratizar o acesso à informação jurídica, permitindo que qualquer pessoa, mesmo sem conhecimentos avançados em programação, possa obter dados estruturados de diversas fontes oficiais.
 
-### Por que o LegiScraper é Importante? 📊
+### Por que o BuScraper é Importante? 📊
 
 A pesquisa jurídica empírica no Brasil enfrenta um grande desafio: a dispersão e a falta de padronização dos dados. Isso torna extremamente difícil e demorado reunir informações em grande escala para análises significativas. O LegiScraper resolve esse problema ao:
 
@@ -25,7 +25,7 @@ A pesquisa jurídica empírica no Brasil enfrenta um grande desafio: a dispersã
 
 ### Impacto na Pesquisa Jurídica Empírica 🚀
 
-O LegiScraper transforma a maneira como as instituições de pesquisa podem abordar estudos jurídicos empíricos:
+O BuScraper transforma a maneira como as instituições de pesquisa podem abordar estudos jurídicos empíricos:
 
 1. **Escala sem precedentes**: O que levaria meses para ser coletado manualmente pode ser obtido em horas ou minutos
 
@@ -39,11 +39,11 @@ O LegiScraper transforma a maneira como as instituições de pesquisa podem abor
 
 ### Como Funciona (Sem Complicações) 💻
 
-O LegiScraper foi projetado para ser simples de usar, mesmo para quem não tem conhecimentos avançados em programação:
+O BuScraper foi projetado para ser simples de usar, mesmo para quem não tem conhecimentos avançados em programação:
 
 ```python
 # Exemplo simples de uso
-from legiscraper import scraper
+from buscraper import scraper
 
 # Criar um raspador para a Presidência da República
 raspador = scraper("PRESIDENCIA")
@@ -59,4 +59,4 @@ print(dados)
 
 **Contato e Colaboração**
 
-Tem interesse em colaborar ou saber mais sobre o LegiScraper? Entre em contato conosco ou contribua diretamente através do nosso repositório no GitHub.
+Tem interesse em colaborar ou saber mais sobre o BuScraper? Entre em contato conosco ou contribua diretamente através do nosso repositório no GitHub.

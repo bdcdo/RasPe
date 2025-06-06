@@ -29,13 +29,13 @@ from datetime import datetime
 from tqdm import tqdm
 import polars as pl
 import requests
-import tempfile
 import os
 import shutil
 import time
 import logging
 import glob
 import json
+
 
 class BaseScraper(ABC):
     """Classe base para criação de web scrapers.
@@ -170,7 +170,6 @@ class BaseScraper(ABC):
         else:
             path_result = self._download_data(**kwargs)
             result = self._parse_data(path_result)
-            
 
             # Determina qual parâmetro contém o termo de busca
             termo_param = next((k for k in kwargs if k in ['pesquisa', 'termo', 'q', 'query']), None)
@@ -187,7 +186,7 @@ class BaseScraper(ABC):
             
             return result
 
-    def _download_data(self, **kwargs):
+    def _download_data(self, **kwargs) -> str:
         self.logger.debug(f"Definindo consulta")
         query_base = self._set_query_base(**kwargs)
         self.logger.debug(query_base)
@@ -225,8 +224,8 @@ class BaseScraper(ABC):
                     self.logger.warning(f"Server error {r.status_code} para URL {r.url}, ignorando página {pag}")
                     continue
 
-                # Salva conteúdo da página
-                file_name = self._set_file_name(download_dir, pag)
+                file_name = f"{download_dir}/{self.nome_buscador}_{pag:05d}.{self.type.lower()}"
+                
                 with open(file_name, "w", encoding="utf-8") as f:
                     # Write response content: use text or JSON dump fallback
                     content = r.text if r.text and r.text.strip() else json.dumps(r.json(), ensure_ascii=False)
@@ -294,21 +293,6 @@ class BaseScraper(ABC):
             start, stop, step = paginas.start, min(paginas.stop, n_pags + 1), paginas.step
             paginas = range(start, stop, step)
         return paginas
-
-    def _create_download_dir(self):
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        path = f"{self.download_path}/{self.nome_buscador}/{timestamp}"
-        
-        if not os.path.isdir(path):
-            os.makedirs(path)
-            self.logger.debug(f"Criado diretório de download em {path}")
-        
-        return path
-
-    def _set_file_name(self, download_dir, pag):
-        file_name = f"{download_dir}/{self.nome_buscador}_{pag:05d}.{self.type.lower()}"
-        
-        return file_name
 
     def _set_query_atual(self, query_real, pag) -> dict[str, str]:
         query_atual = query_real
@@ -384,21 +368,21 @@ class BaseScraper(ABC):
         """
         self.logger.debug(f"Analisando dados de: {path}")
         
-        if os.path.isfile(path):
-            result = [self._parse_page(path)]
-        else:
-            result = []
-            arquivos = glob.glob(f"{path}/**/*.{self.type}", recursive=True)
-            arquivos = [f for f in arquivos if os.path.isfile(f)]
-            for file in tqdm(arquivos, desc="Processando documentos"):
-                try:
-                    single_result = self._parse_page(file)
-                except Exception as e:
-                    self.logger.error(f"Erro ao processar {file}: {e}")
-                    single_result = None
-                    continue
-                if single_result is not None:
-                    result.append(single_result)
+        result = []
+        arquivos = glob.glob(f"{path}/**/*.{self.type}", recursive=True)
+        arquivos = [f for f in arquivos if os.path.isfile(f)]
+
+        for file in tqdm(arquivos, desc="Processando documentos"):
+            try:
+                single_result = self._parse_page(file)
+            except Exception as e:
+                self.logger.error(f"Erro ao processar {file}: {e}")
+                single_result = None
+                continue
+
+            if single_result is not None:
+                result.append(single_result)
+        
         if not result:
             return pl.DataFrame()
         

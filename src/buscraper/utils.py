@@ -143,3 +143,12 @@ def remove_duplicates(df: pl.DataFrame, exclude_cols: list[str]) -> pl.DataFrame
     
     self.logger.info(f"Remoção de duplicatas concluída. Linhas reduzidas de {df.height} para {result.height}")
     return result
+
+def _create_download_dir(self) -> str:
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    path = f"{self.download_path}/{self.nome_buscador}/{timestamp}"
+    os.makedirs(path)
+    
+    self.logger.debug(f"Criado diretório de download em {path}")
+    
+    return path

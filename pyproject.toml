@@ -3,7 +3,7 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "legiscraper"
+name = "buscraper"
 version = "0.1.0"
 description = "A package for scraping legal data from various sources"
 readme = "README.md"
@@ -24,14 +24,14 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bdcdo/legiscraper"
+Homepage = "https://github.com/bdcdo/buscraper"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
 python_functions = "test_*"
 python_classes = "Test*"
-addopts = "-v -s --cov=src/legiscraper --cov-report=html --cov-report=term-missing"
+addopts = "-v -s --cov=src/buscraper --cov-report=html --cov-report=term-missing"
 
 [tool.black]
 line-length = 100
