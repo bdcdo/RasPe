@@ -27,6 +27,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Literal
 from datetime import datetime
 from tqdm import tqdm
+from buscraper.utils import start_session
 import pandas as pd
 import requests
 import os
@@ -68,7 +69,7 @@ class BaseScraper(ABC):
         """Inicializa o BaseScraper com configuração comum."""
         self.nome_buscador: str = nome_buscador
         self.download_path: str = tempfile.mkdtemp()
-        self.session: requests.Session = requests.Session()
+        self.session: requests.Session = start_session()
         self.sleep_time: int = 2
         self.query_page_multiplier: int = 1
         self.query_page_increment: int = 0
@@ -76,14 +77,6 @@ class BaseScraper(ABC):
         self.timeout: tuple[int, int] = (10, 30)
         self.old_page_name: str | None = None
         self.exclude_cols_from_dedup: list[str] = []
-        self.session.headers.update({
-            "Accept-Encoding": "gzip, deflate, br, zstd",
-            "Accept-Language": "pt-BR,en-US;q=0.7,en;q=0.3",
-            "Connection": "keep-alive",
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0",
-        })
         self.max_retries: int = 3
 
         self._api_base: str # Deve ser definido pela subclasse

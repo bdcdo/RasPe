@@ -124,3 +124,44 @@ def remove_duplicates(df: pd.DataFrame):
     novo_df = pd.concat([df_sem_duplicatas, duplicatas_agrupadas], ignore_index=True)
 
     return novo_df
+
+def start_session():
+    session = requests.Session()
+    session.headers.update({
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Accept-Language": "pt-BR,en-US;q=0.7,en;q=0.3",
+            "Connection": "keep-alive",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0",
+        })
+
+    return session
+
+def extract(df, col):
+    session = start_session()
+        
+    lista_infos = []
+    n_items = len(df)
+    i = 1
+
+    for link in df[col]:
+        requisicao = session.get(url=link)
+        lista_infos.append(bs(requisicao.content).text.strip())
+        time.sleep(1)
+        print(f'{i}/{n_items}')
+        i += 1
+
+    df[f'{col}_content'] = lista_infos
+
+    return df
+
+def check(df):
+    df_count = df.copy()
+    
+    set_of_words = set(' '.join(df_count.termo_busca.unique()).split())
+
+    for word in set_of_words:
+        df_count[word] = df_count.apply(lambda row: len(re.findall(r'\b' + re.escape(word) + r'\b', row['link_content'].lower())), axis=1)
+
+    return df_count
