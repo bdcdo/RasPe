@@ -27,7 +27,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Literal
 from datetime import datetime
 from tqdm import tqdm
-import polars as pl
+import pandas as pd
 import requests
 import os
 import shutil
@@ -36,10 +36,6 @@ import logging
 import glob
 import json
 import tempfile
-
-# Import utility functions
-from .utils import remove_duplicates, create_download_dir
-
 
 class BaseScraper(ABC):
     """Classe base para criação de web scrapers.
@@ -127,7 +123,7 @@ class BaseScraper(ABC):
         self.logger.propagate = False
         self.logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
 
-    def scrape(self, **kwargs) -> pl.DataFrame:
+    def scrape(self, **kwargs) -> pd.DataFrame:
         """Método principal para executar o processo de scraping.
         
         Args:
@@ -137,7 +133,7 @@ class BaseScraper(ABC):
                 especificar as páginas.
     
         Returns:
-            pl.DataFrame: DataFrame combinado com todos os dados raspados.
+            pd.DataFrame: DataFrame combinado com todos os dados raspados.
             
         Raises:
             ValueError: Se múltiplos parâmetros forem fornecidos como listas/tuplas.
@@ -152,7 +148,7 @@ class BaseScraper(ABC):
                 raise ValueError("Scrape só suporta lista de valores de busca para um parâmetro")
             key = list_keys[0]
             static_kwargs = {k: v for k, v in kwargs.items() if k != key}
-            dfs: list[pl.DataFrame] = []
+            dfs: list[pd.DataFrame] = []
             for val in kwargs[key]:
                 self.logger.info(f"Iniciando scrape para {key}={val}")
                 loop_kwargs = {**static_kwargs, key: val}
@@ -160,15 +156,13 @@ class BaseScraper(ABC):
                 df = self._parse_data(path_result)
                 
                 termo_busca_val = str(val)
-                df = df.with_columns(pl.lit(termo_busca_val).alias("termo_busca"))
+                df = df.assign(termo_busca=termo_busca_val)
                 self.logger.debug(f"Adicionada coluna termo_busca={termo_busca_val} aos resultados")
                 
                 dfs.append(df)
                 if self.debug is False:
                     shutil.rmtree(path_result)
-            result = pl.concat(dfs) if dfs else pl.DataFrame()
-            
-            result = self._remove_duplicates(result)
+            result = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
                 
             return result
         # Fallback para busca única
@@ -180,14 +174,12 @@ class BaseScraper(ABC):
             termo_param = next((k for k in kwargs if k in ['pesquisa', 'termo', 'q', 'query']), None)
             if termo_param:
                 termo_busca = str(kwargs[termo_param])
-                result = result.with_columns(pl.lit(termo_busca).alias("termo_busca"))
+                result = result.assign(termo_busca=termo_busca)
                 self.logger.debug(f"Adicionada coluna termo_busca={termo_busca} aos resultados")
             
             self.logger.info(f"Scrape finalizado, limpando diretório {path_result}")
             if self.debug is False:
                 shutil.rmtree(path_result)
-            
-            result = self._remove_duplicates(result)
             
             return result
 
@@ -358,7 +350,7 @@ class BaseScraper(ABC):
         """
         ...
         
-    def _parse_data(self, path: str) -> pl.DataFrame:
+    def _parse_data(self, path: str) -> pd.DataFrame:
         """Analisa os dados de um arquivo ou diretório e os consolida em um DataFrame.
 
         Se 'path' for um arquivo, ele será processado diretamente. Se for um diretório,
@@ -369,12 +361,12 @@ class BaseScraper(ABC):
             path: Caminho para o arquivo ou diretório contendo os dados a serem analisados.
 
         Returns:
-            pl.DataFrame: DataFrame consolidado com todos os dados analisados.
+            pd.DataFrame: DataFrame consolidado com todos os dados analisados.
         """
         self.logger.debug(f"Analisando dados de: {path}")
         
         result = []
-        arquivos = glob.glob(f"{path}/**/*.{self.type}", recursive=True)
+        arquivos = glob.glob(f"{path}/**/*.{self.type.lower()}", recursive=True)
         arquivos = [f for f in arquivos if os.path.isfile(f)]
 
         for file in tqdm(arquivos, desc="Processando documentos"):
@@ -389,12 +381,12 @@ class BaseScraper(ABC):
                 result.append(single_result)
         
         if not result:
-            return pl.DataFrame()
+            return pd.DataFrame()
         
-        return pl.concat(result)
+        return pd.concat(result, ignore_index=True)
 
     @abstractmethod
-    def _parse_page(self, path: str) -> pl.DataFrame:
+    def _parse_page(self, path: str) -> pd.DataFrame:
         """Analisa uma única página de dados baixados.
         
         Este método deve ser implementado pelas subclasses para definir como
@@ -408,22 +400,6 @@ class BaseScraper(ABC):
         """
         ...
 
-    def _remove_duplicates(self, df: pl.DataFrame) -> pl.DataFrame:
-        """Remove duplicatas do DataFrame e agrupa os termos de busca.
-        
-        Este método utiliza a função utilitária remove_duplicates() para eliminar
-        linhas duplicadas, considerando as colunas definidas em exclude_cols_from_dedup.
-        
-        Args:
-            df: DataFrame a ser processado.
-            
-        Returns:
-            pl.DataFrame: DataFrame sem duplicatas e com termos de busca agrupados.
-        """
-        self.logger.debug(f"Removendo duplicatas usando exclude_cols: {self.exclude_cols_from_dedup}")
-        
-        # Chama a função utilitária standalone
-        return remove_duplicates(df, self.exclude_cols_from_dedup)
     
     def _create_download_dir(self) -> str:
         """Cria um diretório para armazenar os arquivos baixados.
@@ -434,8 +410,8 @@ class BaseScraper(ABC):
         Returns:
             str: Caminho do diretório criado.
         """
-        # Chama a função utilitária standalone
-        path = create_download_dir(self.download_path, self.nome_buscador)
-        self.logger.debug(f"Criado diretório de download em {path}")
-        
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        path = f"{self.download_path}/{self.nome_buscador}/{timestamp}"
+        os.makedirs(path)
+        self.logger.debug(f"Criando diretório de download em {path}")
         return path

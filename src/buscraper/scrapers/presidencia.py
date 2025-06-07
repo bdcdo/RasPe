@@ -1,13 +1,13 @@
 from ..base_scraper import BaseScraper
 from ..html_scraper import HTMLScraper
 from typing import Any, Literal
-import polars as pl
+import pandas as pd
 import tempfile
 import requests
 import re
 
 class ScraperPresidencia(BaseScraper, HTMLScraper):
-    def __init__(self, download_path = None): # sleep_time = 0.5 causa aviso de "Too Many Requests"
+    def __init__(self): # sleep_time = 0.5 causa aviso de "Too Many Requests"
         super().__init__("PRESIDENCIA")
         self.query_page_multiplier = 10
         self.query_page_increment = -10
@@ -91,7 +91,7 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
         self.logger.debug(f"Calculated pages: {pages}")
         return pages
 
-    def _parse_page(self, path) -> pl.DataFrame:
+    def _parse_page(self, path) -> pd.DataFrame:
         from bs4 import BeautifulSoup
         
         columns = ['nome', 'link', 'ficha', 'revogacao', 'descricao']
@@ -106,11 +106,11 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
             card_body = soup.find('div', class_='card-body p-0')
             
             if not card_body:
-                return pl.DataFrame(schema=columns)
+                return pd.DataFrame(columns=columns)
                 
             container = card_body.find('div')
             if not container:
-                return pl.DataFrame(schema=columns)
+                return pd.DataFrame(columns=columns)
                 
             itens = container.find_all('div')
 
@@ -135,8 +135,8 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
                         self.logger.warning(f"Error parsing item in {path}: {e}")
                         continue
 
-            return pl.DataFrame(lista_infos, schema=columns)
+            return pd.DataFrame(lista_infos, columns=columns)
             
         except Exception as e:
             self.logger.error(f"Error parsing page {path}: {e}")
-            return pl.DataFrame(schema=columns)
+            return pd.DataFrame(columns=columns)

@@ -1,7 +1,7 @@
 from typing import Any
 import json
 
-import polars as pl
+import pandas as pd
 
 from ..base_scraper import BaseScraper
 
@@ -78,4 +78,4 @@ class comunicaCNJ_Scraper(BaseScraper):
         for processo in infos_processos:
             lista_infos.append(processo)
 
-        return pl.DataFrame(lista_infos)
+        return pd.DataFrame(lista_infos)

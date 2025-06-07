@@ -1,7 +1,7 @@
 import re
 import os
 from datetime import datetime
-import polars as pl
+import pandas as pd
 
 def expand(expression: str) -> list[str]:
     """
@@ -103,57 +103,24 @@ def expand(expression: str) -> list[str]:
     # Remove duplicates and sort
     return sorted(list(set(result)))
 
-def remove_duplicates(df: pl.DataFrame, exclude_cols: list[str]) -> pl.DataFrame:
-    """Remove duplicatas do DataFrame e agrupa os termos de busca.
-    
-    Este método remove linhas duplicadas no DataFrame, excluindo as colunas
-    especificadas em exclude_cols e a coluna 'termo_busca'. Para registros
-    que são duplicados, os valores da coluna 'termo_busca' são agrupados em uma lista.
-    
-    Args:
-        df: DataFrame a ser processado.
-        exclude_cols: Lista adicional de colunas para excluir ao detectar duplicatas.
-        
-    Returns:
-        pl.DataFrame: DataFrame sem duplicatas e com termos de busca agrupados.
-    """    
-    # Verificar se há coluna termo_busca
-    if "termo_busca" not in df.columns:
-        return df
-    
-    # Preparar lista de colunas para deduplicação
-    all_exclude_cols = ["termo_busca", *exclude_cols]
-    dedup_cols = [col for col in df.columns if col not in all_exclude_cols]
-    
-    if not dedup_cols:
-        return df
-    
-    # Verificar se há duplicatas
-    dedup_counts = df.group_by(dedup_cols).len()
-    n_duplicates = dedup_counts.filter(pl.col("len") > 1).height
-    
-    if n_duplicates == 0:
-        return df
-    
-    # Agrupar termos de busca para duplicatas
-    agregado = df.group_by(dedup_cols).agg(
-        pl.col("termo_busca").alias("termo_busca_list"),
-        *[pl.col(col).first().alias(col) for col in exclude_cols]
-    )
-    
-    # Converter a coluna de termos para o formato apropriado
-    result = agregado.with_columns([
-        pl.when(pl.col("termo_busca_list").list.len() > 1)
-            .then(pl.col("termo_busca_list").list.join(", "))
-            .otherwise(pl.col("termo_busca_list").list.first())
-            .alias("termo_busca")
-    ]).drop("termo_busca_list")
-    
-    return result
+def remove_duplicates(df: pd.DataFrame):
+    df_copy = df.copy()
 
-def create_download_dir(download_path, nome_buscador) -> str:
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    path = f"{download_path}/{nome_buscador}/{timestamp}"
-    os.makedirs(path)
-        
-    return path
+    # Identificar linhas duplicadas pela coluna 'link'
+    duplicatas = df_copy[df_copy.duplicated(subset='link', keep=False)]
+
+    # First, create the aggregation dictionary
+    agg_dict = {'termo_busca': ', '.join}
+    # Add other columns with 'first' aggregation
+    agg_dict.update({col: 'first' for col in duplicatas.columns if col not in ['link', 'termo_busca']})
+
+    # Now use the aggregation dictionary
+    duplicatas_agrupadas = duplicatas.groupby('link').agg(agg_dict).reset_index()
+
+    # Excluir as duplicatas do DataFrame original
+    df_sem_duplicatas = df_copy.drop_duplicates(subset='link', keep=False)
+
+    # Concatenar o DataFrame original com as duplicatas agrupadas
+    novo_df = pd.concat([df_sem_duplicatas, duplicatas_agrupadas], ignore_index=True)
+
+    return novo_df

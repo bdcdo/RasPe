@@ -3,11 +3,10 @@ import os
 import pytest
 from datetime import datetime
 from unittest.mock import patch, MagicMock
-import polars as pl
+import pandas as pd
 
 # Import functions from utils.py
-from buscraper.utils import expand, remove_duplicates, create_download_dir
-
+from buscraper.utils import expand
 
 class TestExpand:
     """Testes para a função expand() que converte expressões de busca complexas."""
@@ -97,82 +96,3 @@ class TestExpand:
         expr = "termo1 E () E termo2"
         with pytest.raises(ValueError, match="Parênteses vazios"):
             expand(expr)
-
-
-class TestRemoveDuplicates:
-    """Testes para a função remove_duplicates() que elimina duplicatas em DataFrames."""
-
-    def test_no_termo_busca_column(self):
-        """Testa quando não existe a coluna termo_busca."""
-        df = pl.DataFrame({"col1": [1, 2], "col2": ["a", "b"]})
-        result = remove_duplicates(df, [])
-        
-        # Deve retornar o DataFrame original
-        assert result.equals(df)
-
-    def test_no_duplicates(self):
-        """Testa quando não existem duplicatas."""
-        df = pl.DataFrame({
-            "id": [1, 2, 3],
-            "valor": ["a", "b", "c"],
-            "termo_busca": ["termo1", "termo2", "termo3"]
-        })
-        result = remove_duplicates(df, [])
-        
-        # Deve retornar um DataFrame similar ao original
-        assert result.height == df.height
-
-    def test_with_duplicates(self):
-        """Testa quando existem duplicatas para serem removidas."""
-        df = pl.DataFrame({
-            "id": [1, 1, 2],
-            "valor": ["a", "a", "b"],
-            "termo_busca": ["termo1", "termo2", "termo3"],
-            "col_exclude": ["ex1", "ex2", "ex3"]  # Coluna a ser excluída da deduplicação
-        })
-        
-        result = remove_duplicates(df, ["col_exclude"])
-        
-        # Deve reduzir para 2 linhas (removendo duplicatas)
-        assert result.height == 2
-        
-        # Verifica se os termos de busca foram agregados
-        first_row = result.filter(pl.col("id") == 1).select("termo_busca").item()
-        assert "termo1" in first_row and "termo2" in first_row
-
-    def test_no_dedup_cols(self):
-        """Testa quando todas as colunas são excluídas da deduplicação."""
-        df = pl.DataFrame({
-            "termo_busca": ["t1", "t2"],
-            "col1": ["a", "b"]
-        })
-        
-        result = remove_duplicates(df, ["col1"])
-        
-        # Como todas as colunas são excluídas, deve retornar o DataFrame original
-        assert result.equals(df)
-
-
-class TestCreateDownloadDir:
-    """Testes para a função create_download_dir que cria diretórios para downloads."""
-
-    @patch("os.makedirs")
-    @patch("buscraper.utils.datetime")
-    def test_create_directory(self, mock_datetime, mock_makedirs):
-        """Testa a criação do diretório de download."""
-        # Configura o mock para retornar uma data fixa
-        mock_datetime.now.return_value.strftime.return_value = "20250606123456"
-        
-        # Parâmetros para a função
-        download_path = "/tmp/downloads"
-        nome_buscador = "test_buscador"
-        
-        # Chama a função
-        result = create_download_dir(download_path, nome_buscador)
-        
-        # Verifica o caminho criado
-        expected_path = "/tmp/downloads/test_buscador/20250606123456"
-        assert result == expected_path
-        
-        # Verifica se o diretório foi criado
-        mock_makedirs.assert_called_once_with(expected_path)
