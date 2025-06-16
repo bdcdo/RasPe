@@ -13,7 +13,7 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
         super().__init__("PRESIDENCIA")
         self.query_page_multiplier = 10
         self.query_page_increment = -10
-        self.session.headers.update({
+        self.session.headers.uplate({
             "Accept": "*/*",
             "Origin": "https://legislacao.presidencia.gov.br",
             "Referer": "https://legislacao.presidencia.gov.br/",

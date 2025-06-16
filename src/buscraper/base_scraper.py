@@ -18,7 +18,7 @@ Exemplo de uso:
         def _find_n_pags(self, response) -> int:
             return response.json().get("total_paginas", 1)
 
-        def _parse_page(self, path: str) -> pl.DataFrame:
+        def _parse_page(self, path: str) -> pd.DataFrame:
             # Implementação da análise dos dados baixados
             ...
 """
@@ -383,13 +383,13 @@ class BaseScraper(ABC):
         """Analisa uma única página de dados baixados.
         
         Este método deve ser implementado pelas subclasses para definir como
-        converter os dados baixados em um DataFrame do polars.
+        converter os dados baixados em um DataFrame do pandas.
         
         Args:
             path: Caminho para o arquivo baixado a ser analisado.
             
         Returns:
-            pl.DataFrame: Dados analisados como um DataFrame.
+            pd.DataFrame: Dados analisados como um DataFrame.
         """
         ...
 
