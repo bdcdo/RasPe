@@ -2,6 +2,9 @@ import re
 import os
 from datetime import datetime
 import pandas as pd
+import requests
+from bs4 import BeautifulSoup as bs
+import time
 
 def expand(expression: str) -> list[str]:
     """
@@ -146,11 +149,21 @@ def extract(df, col):
     i = 1
 
     for link in df[col]:
-        requisicao = session.get(url=link)
-        lista_infos.append(bs(requisicao.content).text.strip())
-        time.sleep(1)
-        print(f'{i}/{n_items}')
-        i += 1
+        try:
+            # Verifica se é um link do tipo file://
+            if link.startswith('file://'):
+                print(f'Pulando link de arquivo local: {link}')
+                lista_infos.append('')  # Adiciona string vazia para manter o alinhamento dos dados
+            else:
+                requisicao = session.get(url=link)
+                lista_infos.append(bs(requisicao.content).text.strip())
+            
+            time.sleep(1)
+            print(f'{i}/{n_items}')
+            i += 1
+        except Exception as e:
+            print(f'Erro ao processar link {link}: {str(e)}')
+            lista_infos.append('')  # Adiciona string vazia em caso de erro
 
     df[f'{col}_content'] = lista_infos
 

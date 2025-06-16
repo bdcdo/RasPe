@@ -142,29 +142,3 @@ class ScraperPresidencia(BaseScraper, HTMLScraper):
         except Exception as e:
             self.logger.error(f"Error parsing page {path}: {e}")
             return pd.DataFrame(columns=columns)
-
-    def extract(self, df, col):
-        lista_infos = []
-        n_items = len(df)
-        i = 1
-
-        for link in df[col]:
-            requisicao = self.session.get(url=link)
-            lista_infos.append(bs(requisicao.content).text.strip())
-            time.sleep(self.sleep_time-1)
-            print(f'{i}/{n_items}')
-            i += 1
-
-        df[f'{col}_content'] = lista_infos
-
-        return df
-
-    def check(self, df):
-        df_count = df.copy()
-        
-        set_of_words = set(' '.join(df_count.termo_busca.unique()).split())
-
-        for word in set_of_words:
-            df_count[word] = df_count.apply(lambda row: len(re.findall(r'\b' + re.escape(word) + r'\b', row['link_content'].lower())), axis=1)
-
-        return df_count
