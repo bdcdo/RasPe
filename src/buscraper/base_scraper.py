@@ -80,9 +80,9 @@ class BaseScraper(ABC):
         self.max_retries: int = 3
 
         self._api_base: str # Deve ser definido pela subclasse
-        self._type: Literal['JSON', 'HTML'] # Deve ser definido pela subclasse
+        self._type: Literal['JSON'] | Literal ['HTML'] # Deve ser definido pela subclasse
         self._query_page_name: str # Deve ser definido pela subclasse
-        self._api_method: Literal['GET', 'POST']
+        self._api_method: Literal['GET'] | Literal['POST']
 
         self._start_logger()
 
@@ -329,14 +329,14 @@ class BaseScraper(ABC):
         ...
 
     @abstractmethod
-    def _find_n_pags(self, response: requests.Response) -> int:
+    def _find_n_pags(self, r0: requests.Response) -> int:
         """Determina o número total de páginas a serem raspadas.
         
         Este método deve ser implementado pelas subclasses para analisar a resposta
         inicial e determinar quantas páginas de dados estão disponíveis.
         
         Args:
-            response: A resposta inicial da API ou website.
+            r0: A resposta inicial da API ou website.
             
         Returns:
             int: Número total de páginas a serem raspadas.
