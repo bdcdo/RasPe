@@ -1,3 +1,4 @@
+from .scrapers.camara import ScraperCamaraDeputados
 from .scrapers.senado import ScraperSenadoFederal
 from .scrapers.presidencia import ScraperPresidencia
 from .scrapers.comunicaCNJ import comunicaCNJ_Scraper
@@ -13,7 +14,8 @@ def scraper(nome_buscador: str, **kwargs) -> BaseScraper:
         "PRESIDENCIA": ScraperPresidencia,
         "CNJ": comunicaCNJ_Scraper,
         "IPEA": IpeaScraper,
-        "SENADO": ScraperSenadoFederal
+        "SENADO": ScraperSenadoFederal,
+        "CAMARA": ScraperCamaraDeputados
     }
 
     try:
