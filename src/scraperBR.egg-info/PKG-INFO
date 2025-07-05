@@ -1,0 +1,80 @@
+Metadata-Version: 2.4
+Name: scraperBR
+Version: 0.1.0
+Summary: A package for scraping SERP data from various Brazilian sources
+Author-email: "Bruno da C. de Oliveira" <bruno.dcdo@gmail.com>
+Project-URL: Homepage, https://github.com/bdcdo/buscraper
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: polars>=0.20.0
+Requires-Dist: requests>=2.28.0
+Requires-Dist: tenacity>=8.2.3
+Requires-Dist: beautifulsoup4>=4.12.2
+Requires-Dist: tqdm>=4.66.1
+
+# BuScraper - Se tem buscador, nós raspamos 🔍📜
+
+## Simplificando a Coleta de Dados Jurídicos para Pesquisa Empírica
+
+### Sobre o Projeto
+
+O **BuScraper** é uma biblioteca em Python desenvolvida para revolucionar a forma como pesquisadores coletam dados jurídicos e legislativos no Brasil. Esta ferramenta foi criada para democratizar o acesso à informação jurídica, permitindo que qualquer pessoa, mesmo sem conhecimentos avançados em programação, possa obter dados estruturados de diversas fontes oficiais.
+
+### Por que o BuScraper é Importante? 📊
+
+A pesquisa jurídica empírica no Brasil enfrenta um grande desafio: a dispersão e a falta de padronização dos dados. Isso torna extremamente difícil e demorado reunir informações em grande escala para análises significativas. O LegiScraper resolve esse problema ao:
+
+- **Automatizar a coleta de dados** de múltiplas fontes oficiais
+- **Padronizar as informações** em formatos facilmente analisáveis
+- **Reduzir drasticamente o tempo** necessário para a coleta de dados
+- **Minimizar erros humanos** no processo de coleta
+- **Permitir análises em grande escala** que seriam impraticáveis manualmente
+
+### Fontes Suportadas Atualmente 🏛️
+
+- **Presidência da República**: Acesso à legislação federal brasileira
+- **Diário Oficial da União (DOU)**: Publicações oficiais do governo federal
+- **Conselho Nacional de Justiça (CNJ)**: Comunicados e normas do sistema judiciário
+- **Folha de São Paulo**: Notícias relacionadas ao universo jurídico
+
+### Impacto na Pesquisa Jurídica Empírica 🚀
+
+O BuScraper transforma a maneira como as instituições de pesquisa podem abordar estudos jurídicos empíricos:
+
+1. **Escala sem precedentes**: O que levaria meses para ser coletado manualmente pode ser obtido em horas ou minutos
+
+2. **Democratização da pesquisa**: Instituições com recursos limitados podem realizar pesquisas robustas que antes eram privilégio de grandes centros
+
+3. **Reprodutibilidade científica**: As pesquisas tornam-se mais transparentes e verificáveis, fortalecendo a confiabilidade dos resultados
+
+4. **Análises longitudinais**: Facilita estudos que acompanham a evolução da legislação e jurisprudência ao longo do tempo
+
+5. **Cruzamento de dados entre fontes**: Permite correlacionar informações de diferentes órgãos oficiais
+
+### Como Funciona (Sem Complicações) 💻
+
+O BuScraper foi projetado para ser simples de usar, mesmo para quem não tem conhecimentos avançados em programação:
+
+```python
+# Exemplo simples de uso
+from buscraper import scraper
+
+# Criar um raspador para a Presidência da República
+raspador = scraper("PRESIDENCIA")
+
+# Buscar informações sobre a Lei de Responsabilidade Fiscal
+dados = raspador.scrape(pesquisa="Lei de Responsabilidade Fiscal")
+
+# Os dados já vêm estruturados e prontos para análise
+print(dados)
+```
+
+---
+
+**Contato e Colaboração**
+
+Tem interesse em colaborar ou saber mais sobre o BuScraper? Entre em contato conosco ou contribua diretamente através do nosso repositório no GitHub.
+# buScraper
