@@ -175,6 +175,9 @@ def check(df):
     set_of_words = set(' '.join(df_count.termo_busca.unique()).split())
 
     for word in set_of_words:
-        df_count[word] = df_count.apply(lambda row: len(re.findall(r'\b' + re.escape(word) + r'\b', row['link_content'].lower())), axis=1)
+        # Regex melhorado para garantir que a palavra seja encontrada como palavra completa
+        # Usa lookahead e lookbehind negativos para garantir que não há caracteres alfanuméricos antes ou depois
+        pattern = r'(?<!\w)' + re.escape(word) + r'(?!\w)'
+        df_count[word] = df_count.apply(lambda row: len(re.findall(pattern, row['link_content'].lower())), axis=1)
 
     return df_count

@@ -1,13 +1,13 @@
 Metadata-Version: 2.4
-Name: buscraper
+Name: scraperBR
 Version: 0.1.0
-Summary: A package for scraping legal data from various sources
+Summary: A package for scraping SERP data from various Brazilian sources
 Author-email: "Bruno da C. de Oliveira" <bruno.dcdo@gmail.com>
 Project-URL: Homepage, https://github.com/bdcdo/buscraper
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
-Requires-Python: >=3.12
+Requires-Python: >=3.11
 Description-Content-Type: text/markdown
 Requires-Dist: polars>=0.20.0
 Requires-Dist: requests>=2.28.0

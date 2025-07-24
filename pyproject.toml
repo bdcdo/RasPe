@@ -3,11 +3,11 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "buscraper"
+name = "scraperBR"
 version = "0.1.0"
-description = "A package for scraping legal data from various sources"
+description = "A package for scraping SERP data from various Brazilian sources"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 authors = [
     { name = "Bruno da C. de Oliveira", email = "bruno.dcdo@gmail.com" },
 ]
