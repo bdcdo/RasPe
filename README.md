@@ -37,7 +37,7 @@ O BraScraper transforma a maneira como pesquisadores podem abordar estudos empí
 ### Instalação
 
 ```bash
-pip install brascraper
+pip install git+https://github.com/bdcdo/braScraper.git
 ```
 
 ### Como Usar 💻
