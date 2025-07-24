@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock
 import pandas as pd
 
 # Import functions from utils.py
-from scraperBR.utils import expand
+from brascraper.utils import expand
 
 class TestExpand:
     """Testes para a função expand() que converte expressões de busca complexas."""

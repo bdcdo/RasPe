@@ -1,16 +1,16 @@
-# BuScraper - Se tem buscador, nós raspamos 🔍📜
+# BraScraper - Ferramentas de Web Scraping para Pesquisa no Brasil 🔍📊
 
-## Simplificando a Coleta de Dados Jurídicos para Pesquisa Empírica
+## Simplificando a Coleta de Dados de Fontes Brasileiras para Pesquisadores
 
 ### Sobre o Projeto
 
-O **BuScraper** é uma biblioteca em Python desenvolvida para revolucionar a forma como pesquisadores coletam dados jurídicos e legislativos no Brasil. Esta ferramenta foi criada para democratizar o acesso à informação jurídica, permitindo que qualquer pessoa, mesmo sem conhecimentos avançados em programação, possa obter dados estruturados de diversas fontes oficiais.
+O **BraScraper** é uma biblioteca Python desenvolvida para facilitar a coleta automatizada de dados de diversas fontes brasileiras. Esta ferramenta foi criada para democratizar o acesso à informação pública e acadêmica, permitindo que pesquisadores obtenham dados estruturados de múltiplas fontes oficiais e institucionais do Brasil.
 
-### Por que o BuScraper é Importante? 📊
+### Por que o BraScraper é Importante? 📊
 
-A pesquisa jurídica empírica no Brasil enfrenta um grande desafio: a dispersão e a falta de padronização dos dados. Isso torna extremamente difícil e demorado reunir informações em grande escala para análises significativas. O LegiScraper resolve esse problema ao:
+A pesquisa empírica no Brasil enfrenta desafios significativos relacionados à dispersão e falta de padronização dos dados. O BraScraper resolve esses problemas ao:
 
-- **Automatizar a coleta de dados** de múltiplas fontes oficiais
+- **Automatizar a coleta de dados** de múltiplas fontes brasileiras
 - **Padronizar as informações** em formatos facilmente analisáveis
 - **Reduzir drasticamente o tempo** necessário para a coleta de dados
 - **Minimizar erros humanos** no processo de coleta
@@ -18,46 +18,81 @@ A pesquisa jurídica empírica no Brasil enfrenta um grande desafio: a dispersã
 
 ### Fontes Suportadas Atualmente 🏛️
 
-- **Presidência da República**: Acesso à legislação federal brasileira
-- **Diário Oficial da União (DOU)**: Publicações oficiais do governo federal
+- **Presidência da República**: Legislação federal brasileira
+- **Câmara dos Deputados**: Proposições e atividade legislativa
+- **Senado Federal**: Projetos de lei e atividade senatorial
 - **Conselho Nacional de Justiça (CNJ)**: Comunicados e normas do sistema judiciário
-- **Folha de São Paulo**: Notícias relacionadas ao universo jurídico
+- **IPEA**: Instituto de Pesquisa Econômica Aplicada
 
-### Impacto na Pesquisa Jurídica Empírica 🚀
+### Impacto na Pesquisa Empírica 🚀
 
-O BuScraper transforma a maneira como as instituições de pesquisa podem abordar estudos jurídicos empíricos:
+O BraScraper transforma a maneira como pesquisadores podem abordar estudos empíricos:
 
-1. **Escala sem precedentes**: O que levaria meses para ser coletado manualmente pode ser obtido em horas ou minutos
+1. **Escala sem precedentes**: Coleta de dados que levaria meses pode ser realizada em horas
+2. **Democratização da pesquisa**: Acesso a dados robustos para instituições com recursos limitados
+3. **Reprodutibilidade científica**: Pesquisas mais transparentes e verificáveis
+4. **Análises longitudinais**: Facilita estudos temporais da evolução de políticas e legislação
+5. **Cruzamento de dados**: Permite correlacionar informações de diferentes fontes
 
-2. **Democratização da pesquisa**: Instituições com recursos limitados podem realizar pesquisas robustas que antes eram privilégio de grandes centros
+### Instalação
 
-3. **Reprodutibilidade científica**: As pesquisas tornam-se mais transparentes e verificáveis, fortalecendo a confiabilidade dos resultados
+```bash
+pip install brascraper
+```
 
-4. **Análises longitudinais**: Facilita estudos que acompanham a evolução da legislação e jurisprudência ao longo do tempo
+### Como Usar 💻
 
-5. **Cruzamento de dados entre fontes**: Permite correlacionar informações de diferentes órgãos oficiais
-
-### Como Funciona (Sem Complicações) 💻
-
-O BuScraper foi projetado para ser simples de usar, mesmo para quem não tem conhecimentos avançados em programação:
+O BraScraper foi projetado para ser simples de usar:
 
 ```python
-# Exemplo simples de uso
-from buscraper import scraper
+from brascraper import scraper
 
 # Criar um raspador para a Presidência da República
 raspador = scraper("PRESIDENCIA")
 
-# Buscar informações sobre a Lei de Responsabilidade Fiscal
+# Buscar informações
 dados = raspador.scrape(pesquisa="Lei de Responsabilidade Fiscal")
 
-# Os dados já vêm estruturados e prontos para análise
+# Os dados vêm estruturados e prontos para análise
 print(dados)
 ```
 
----
+### Exemplos de Uso por Fonte
 
-**Contato e Colaboração**
+#### Câmara dos Deputados
+```python
+from brascraper import scraper
 
-Tem interesse em colaborar ou saber mais sobre o BuScraper? Entre em contato conosco ou contribua diretamente através do nosso repositório no GitHub.
-# buScraper
+camara = scraper("CAMARA")
+dados = camara.scrape(pesquisa="meio ambiente")
+```
+
+#### Senado Federal
+```python
+from brascraper import scraper
+
+senado = scraper("SENADO")
+dados = senado.scrape(pesquisa="educação")
+```
+
+#### IPEA
+```python
+from brascraper import scraper
+
+ipea = scraper("IPEA")
+dados = ipea.scrape(pesquisa="economia brasileira")
+```
+
+### Contribuindo
+
+Contribuições são bem-vindas! Por favor, leia nossas diretrizes de contribuição antes de submeter pull requests.
+
+### Licença
+
+Este projeto está licenciado sob a Licença MIT - veja o arquivo LICENSE para detalhes.
+
+### Contato
+
+**Bruno da C. de Oliveira** - bruno.dcdo@gmail.com
+
+Link do Projeto: [https://github.com/bdcdo/brascraper](https://github.com/bdcdo/brascraper)

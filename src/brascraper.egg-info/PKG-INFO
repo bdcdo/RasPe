@@ -1,9 +1,9 @@
 Metadata-Version: 2.4
-Name: scraperBR
+Name: brascraper
 Version: 0.1.0
 Summary: A package for scraping SERP data from various Brazilian sources
 Author-email: "Bruno da C. de Oliveira" <bruno.dcdo@gmail.com>
-Project-URL: Homepage, https://github.com/bdcdo/buscraper
+Project-URL: Homepage, https://github.com/bdcdo/brascraper
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
@@ -60,7 +60,7 @@ O BuScraper foi projetado para ser simples de usar, mesmo para quem não tem con
 
 ```python
 # Exemplo simples de uso
-from buscraper import scraper
+from brascraper import scraper
 
 # Criar um raspador para a Presidência da República
 raspador = scraper("PRESIDENCIA")

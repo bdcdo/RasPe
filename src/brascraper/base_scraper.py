@@ -27,7 +27,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Literal
 from datetime import datetime
 from tqdm import tqdm
-from scraperBR.utils import start_session
+from brascraper.utils import start_session
 import pandas as pd
 import requests
 import os
