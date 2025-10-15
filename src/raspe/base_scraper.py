@@ -116,34 +116,34 @@ class BaseScraper(ABC):
         self.logger.propagate = False
         self.logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
 
-    def scrape(self, **kwargs) -> pd.DataFrame:
-        """Método principal para executar o processo de scraping.
+    def raspar(self, **kwargs) -> pd.DataFrame:
+        """Método principal para executar o processo de raspagem de dados.
         
         Args:
-            **kwargs: Parâmetros de busca para o scraper. Se algum parâmetro for
-                uma lista/tupla, o scraper processará cada valor na sequência.
+            **kwargs: Parâmetros de busca para o raspador. Se algum parâmetro for
+                uma lista/tupla, o raspador processará cada valor na sequência.
                 O parâmetro especial 'paginas' pode ser um objeto range para
                 especificar as páginas.
-    
+
         Returns:
             pd.DataFrame: DataFrame combinado com todos os dados raspados.
             
         Raises:
             ValueError: Se múltiplos parâmetros forem fornecidos como listas/tuplas.
         """
-        
+
         # TODO: Revisar a lógica
-        self.logger.info(f"Iniciando scrape com parâmetros {kwargs}")
+        self.logger.info(f"Iniciando raspagem com parâmetros {kwargs}")
         # Suporte a lista de valores de busca
         list_keys = [k for k, v in kwargs.items() if isinstance(v, (list, tuple)) and k != "paginas"]
         if list_keys:
             if len(list_keys) > 1:
-                raise ValueError("Scrape só suporta lista de valores de busca para um parâmetro")
+                raise ValueError("raspar() só suporta lista de valores de busca para um parâmetro")
             key = list_keys[0]
             static_kwargs = {k: v for k, v in kwargs.items() if k != key}
             dfs: list[pd.DataFrame] = []
             for val in kwargs[key]:
-                self.logger.info(f"Iniciando scrape para {key}={val}")
+                self.logger.info(f"Iniciando raspagem para {key}={val}")
                 loop_kwargs = {**static_kwargs, key: val}
                 path_result = self._download_data(**loop_kwargs)
                 df = self._parse_data(path_result)
@@ -169,8 +169,8 @@ class BaseScraper(ABC):
                 termo_busca = str(kwargs[termo_param])
                 result = result.assign(termo_busca=termo_busca)
                 self.logger.debug(f"Adicionada coluna termo_busca={termo_busca} aos resultados")
-            
-            self.logger.info(f"Scrape finalizado, limpando diretório {path_result}")
+
+            self.logger.info(f"Raspagem finalizada, limpando diretório {path_result}")
             if self.debug is False:
                 shutil.rmtree(path_result)
             

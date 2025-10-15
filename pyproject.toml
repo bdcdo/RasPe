@@ -9,7 +9,7 @@ description = "Raspadores para Pesquisas Acadêmicas - ferramentas para coleta d
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
-    { name = "Bruno da C. de Oliveira", email = "bruno.dcdo@gmail.com" },
+    { name = "Bruno da Cunha de Oliveira", email = "bruno.dcdo@gmail.com" },
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
