@@ -3,9 +3,9 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "brascraper"
+name = "raspe"
 version = "0.1.0"
-description = "A package for scraping SERP data from various Brazilian sources"
+description = "Raspadores para Pesquisas Acadêmicas - ferramentas para coleta de dados de fontes brasileiras"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
@@ -17,7 +17,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "polars>=0.20.0",
+    "pandas>=2.0.0",
     "requests>=2.28.0",
     "tenacity>=8.2.3",
     "beautifulsoup4>=4.12.2",
@@ -25,14 +25,14 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bdcdo/brascraper"
+Homepage = "https://github.com/bdcdo/RasPe"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
 python_functions = "test_*"
 python_classes = "Test*"
-addopts = "-v -s --cov=src/brascraper --cov-report=html --cov-report=term-missing"
+addopts = "-v -s --cov=src/raspe --cov-report=html --cov-report=term-missing"
 
 [tool.black]
 line-length = 100
