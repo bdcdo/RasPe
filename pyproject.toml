@@ -25,7 +25,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bdcdo/RasPe"
+Homepage = "https://github.com/bdcdo/raspe"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

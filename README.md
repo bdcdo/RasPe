@@ -37,7 +37,7 @@ O RasPe transforma a maneira como pesquisadores podem abordar estudos empíricos
 ### Instalação
 
 ```bash
-pip install git+https://github.com/bdcdo/RasPe.git
+pip install git+https://github.com/bdcdo/raspe.git
 ```
 
 ### Como Usar 💻
@@ -139,7 +139,7 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo LICENSE para d
 
 **Bruno da C. de Oliveira** - bruno.dcdo@gmail.com
 
-Link do Projeto: [https://github.com/bdcdo/RasPe](https://github.com/bdcdo/RasPe)
+Link do Projeto: [https://github.com/bdcdo/raspe](https://github.com/bdcdo/raspe)
 
 ---
 
@@ -152,6 +152,6 @@ Se você utilizar o RasPe em sua pesquisa, por favor considere citá-lo:
   author = {Oliveira, Bruno da C. de},
   title = {RasPe: Raspadores para Pesquisas Acadêmicas},
   year = {2025},
-  url = {https://github.com/bdcdo/RasPe}
+  url = {https://github.com/bdcdo/raspe}
 }
 ```
