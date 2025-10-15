@@ -176,6 +176,14 @@ class BaseScraper(ABC):
             
             return result
 
+    def scrape(self, **kwargs) -> pd.DataFrame:
+        """Alias para raspar() mantido para retrocompatibilidade.
+
+        Este método existe apenas para manter compatibilidade com código antigo.
+        Use raspar() em novos projetos.
+        """
+        return self.raspar(**kwargs)
+
     def _download_data(self, **kwargs) -> str:
         self.logger.debug(f"Definindo consulta")
         query_base = self._set_query_base(**kwargs)
