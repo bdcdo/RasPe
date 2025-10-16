@@ -20,6 +20,7 @@ from .scrapers.senado import ScraperSenadoFederal
 from .scrapers.presidencia import ScraperPresidencia
 from .scrapers.comunicaCNJ import comunicaCNJ_Scraper
 from .scrapers.ipea import IpeaScraper
+from .scrapers.cfm import ScraperCFM
 from .utils import expand, remove_duplicates, extract, check
 
 __version__ = version("raspe")
@@ -69,12 +70,22 @@ def camara(**kwargs):
     """
     return ScraperCamaraDeputados(**kwargs)
 
+def cfm(**kwargs):
+    """
+    Cria um raspador para normas do CFM (Conselho Federal de Medicina).
+
+    Returns:
+        ScraperCFM: Instância configurada do raspador.
+    """
+    return ScraperCFM(**kwargs)
+
 __all__ = [
     "presidencia",
     "cnj",
     "ipea",
     "senado",
     "camara",
+    "cfm",
     "expand",
     "remove_duplicates",
     "extract",
